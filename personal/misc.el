@@ -2,10 +2,8 @@
 (prelude-require-package 'monokai-theme)
 (load-theme 'monokai t)
 
-;;set the font
-;;(set-default-font "Source Code Pro 11")
-;;(add-to-list 'default-frame-alist '(font .   "Source Code Pro 11" ))
-;;(set-face-attribute 'default t :font   "Source Code Pro 11" )
+;;set the font, this seems to work for the emacs deamon
+(add-to-list 'default-frame-alist '(font .   "Source Code Pro 11" ))
 
 ;;Add resclient pacakge
 (prelude-require-package 'restclient)
@@ -21,11 +19,11 @@ scroll-step 1)
 (display-time-mode t)
 
 ;;color identifies (colors every variable different)
-;;(prelude-require-package 'color-identifiers-mode)
+(prelude-require-package 'color-identifiers-mode)
 ;;(add-hook 'prog-mode-hook 'global-color-identifiers-mode)
 ;;(global-color-identifiers-mode)
 
-;; (prelude-require-package 'rainbow-delimiters)
+(prelude-require-package 'rainbow-delimiters)
 ;; (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
 ;;store backups in one folder instead of next to the file
