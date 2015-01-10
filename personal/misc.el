@@ -3,7 +3,8 @@
 (load-theme 'monokai t)
 
 ;;set the font, this seems to work for the emacs deamon
-(add-to-list 'default-frame-alist '(font .   "Source Code Pro 11" ))
+(add-to-list 'default-frame-alist '(font .   "Source Code Pro 12" ))
+(global-visual-line-mode t)
 
 ;;Add resclient pacakge
 (prelude-require-package 'restclient)

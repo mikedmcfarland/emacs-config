@@ -1,11 +1,15 @@
+(defun map-all-evil-states (keys action)
+  "maps key combination to action for all evil modes"
+  (define-key evil-normal-state-map keys action)
+  (define-key evil-insert-state-map keys action)
+  (define-key evil-visual-state-map keys action)
+)
+
 ;;map control p to finding a file with projectile
-(define-key evil-normal-state-map "\C-p" 'projectile-find-file)
-(define-key evil-insert-state-map "\C-p" 'projectile-find-file)
-(define-key evil-visual-state-map "\C-p" 'projectile-find-file)
+(map-all-evil-states (kbd "C-p") 'projectile-find-file)
+
 ;;Remap alt p to switching a project with projectile
-(define-key evil-normal-state-map "\M-p" 'projectile-switch-project)
-(define-key evil-insert-state-map "\M-p" 'projectile-switch-project)
-(define-key evil-visual-state-map "\M-p" 'projectile-switch-project)
+(map-all-evil-states (kbd "M-p") 'projectile-switch-project)
 ;;have j and k go down to next visual line
 (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
 (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
@@ -17,7 +21,27 @@
                         (interactive)
                         (evil-scroll-down nil)))
 
+(map-all-evil-states (kbd "C-h") 'previous-buffer)
+(map-all-evil-states (kbd "C-l") 'next-buffer)
 
+
+(define-key evil-insert-state-map "k" #'cofi/maybe-exit)
+
+(evil-define-command cofi/maybe-exit ()
+  :repeat change
+  (interactive)
+  (let ((modified (buffer-modified-p)))
+    (insert "k")
+    (let ((evt (read-event (format "Insert %c to exit insert state" ?j)
+               nil 0.5)))
+      (cond
+       ((null evt) (message ""))
+       ((and (integerp evt) (char-equal evt ?j))
+    (delete-char -1)
+    (set-buffer-modified-p modified)
+    (push 'escape unread-command-events))
+       (t (setq unread-command-events (append unread-command-events
+                          (list evt))))))))
 
 ;;Have escape actually exit things
 ;; esc quits
@@ -43,11 +67,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;;auto indent line on return
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
+;;make sure nerd commenter is installed
+(prelude-require-package 'evil-nerd-commenter)
+
 (define-minor-mode bear-mode
   "a mode designed with bears in mind"
   :lighter " bear"
   :global 1
   :keymap (let ((map (make-sparse-keymap)))
+            ;;comment lines with control /
             (define-key map (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
             map))
 
