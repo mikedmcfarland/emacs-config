@@ -4,27 +4,26 @@
   (define-key evil-insert-state-map keys action)
   (define-key evil-visual-state-map keys action)
 )
-
 ;;map control p to finding a file with projectile
 (map-all-evil-states (kbd "C-p") 'projectile-find-file)
-
+(global-set-key (kbd "C-p") 'projectile-find-file)
 ;;Remap alt p to switching a project with projectile
-(map-all-evil-states (kbd "M-p") 'projectile-switch-project)
+(global-set-key (kbd "M-p") 'projectile-switch-project)
 ;;have j and k go down to next visual line
 (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
 (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
-;;map coontrol j/k to do page up/ page down
-(define-key evil-normal-state-map (kbd "C-k") (lambda ()
-                    (interactive)
-                    (evil-scroll-up nil)))
-(define-key evil-normal-state-map (kbd "C-j") (lambda ()
-                        (interactive)
-                        (evil-scroll-down nil)))
 
-(map-all-evil-states (kbd "C-h") 'previous-buffer)
-(map-all-evil-states (kbd "C-l") 'next-buffer)
+;;Have no idea why up and down are doing absurd things, but this helped
+(global-set-key (kbd "<up>") 'evil-previous-visual-line)
+(global-set-key (kbd "<down>") 'evil-next-visual-line)
+(global-set-key (kbd "C-h") 'previous-buffer)
+(global-set-key (kbd "C-l") 'next-buffer)
+(global-set-key (kbd "C-q") 'kill-this-buffer)
+(map-all-evil-states (kbd "C-s") 'save-buffer)
+(map-all-evil-states (kbd "C-n") 'xah-new-empty-buffer)
+(map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
 
-
+;;Define KJ as espace while in insert
 (define-key evil-insert-state-map "k" #'cofi/maybe-exit)
 
 (evil-define-command cofi/maybe-exit ()
@@ -70,13 +69,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;;make sure nerd commenter is installed
 (prelude-require-package 'evil-nerd-commenter)
 
-(define-minor-mode bear-mode
-  "a mode designed with bears in mind"
-  :lighter " bear"
-  :global 1
-  :keymap (let ((map (make-sparse-keymap)))
-            ;;comment lines with control /
-            (define-key map (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
-            map))
+(defun xah-new-empty-buffer ()
+  "Open a new empty buffer."
+  (interactive)
+  (let ((buf (generate-new-buffer "untitled")))
+    (switch-to-buffer buf)
+    (funcall (and initial-major-mode))
+    (setq buffer-offer-save t)))
 
-(provide 'bear-mode)
+
+;; (define-minor-mode bear-mode
+;;   "a mode designed with bears in mind"
+;;   :lighter " bear"
+;;   :global 1
+;;   :keymap (let ((map (make-sparse-keymap)))
+;;             ;;comment lines with control /
+;;             (define-key map (kbd "C-p") nil)
+;;             map))
+
+;; (provide 'bear-mode)

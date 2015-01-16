@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#key : convar
+#name : log variable
+# --
+console.log("${1:var}",$1)

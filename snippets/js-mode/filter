@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+#key : filter
+#name : filter
+# --
+filter(function(${1:elem}) {
+  return ${2:predicate}
+})

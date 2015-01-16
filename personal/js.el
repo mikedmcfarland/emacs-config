@@ -1,4 +1,5 @@
 ;;Set up tern js completion/refactoring
+
 (prelude-require-package 'tern)
 (add-hook 'prelude-js-mode-hook (lambda () (tern-mode t)))
 (eval-after-load 'tern
@@ -9,7 +10,7 @@
 ;;Set tab width of javascript to be 2 spaces
 (setq-default js-indent-level 2)
 (add-hook 'prelude-js-mode-hook
-  (lambda() (setq evil-shift-width 2)))
+          (lambda() (setq evil-shift-width 2)))
 
 (setq-default js2-basic-offset 2)
 ;;better highlighting
@@ -24,3 +25,34 @@
 (setq-default js2-pretty-multiline-declarations nil)
 ;;we like harmony
 (setq-default js2-language-version 200)
+
+(defun js-jump-to (current from to format-name)
+  (find-file
+   (cl-loop with parts = (reverse current)
+            with fname = (file-name-sans-extension (cl-first parts))
+            for (name . rest) on (cl-rest parts)
+            until (string-equal name from)
+            collect name into names
+            finally (cl-return
+                     (mapconcat 'identity
+                                (nconc (reverse rest)
+                                       (list to)
+                                       (reverse names)
+                                       (list (funcall format-name fname) )) "/" )))))
+
+(defun js-format-impl-name (fname)
+  (format "%s.js" (replace-regexp-in-string "Spec" "" fname)))
+
+(defun js-format-test-name (fname)
+  (format "%sSpec.js" fname))
+
+(defun js-jump-to-implementation-or-test ()
+  (interactive)
+  (let ((current (split-string (buffer-file-name) "/")))
+    (cond
+     ((member "test" current) (js-jump-to current "test" "lib" 'js-format-impl-name))
+     ((member "lib" current)  (js-jump-to current "lib" "test" 'js-format-test-name))
+     (t (error "not within a test or lib directory"))
+  )))
+
+(map-all-evil-states (kbd "C-t") 'js-jump-to-implementation-or-test)

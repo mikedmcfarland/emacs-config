@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+#key : funcanon
+#name : anonymous function
+# --
+function($1) {
+  $0
+}

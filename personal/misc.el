@@ -19,14 +19,6 @@ scroll-step 1)
 (powerline-evil-vim-color-theme)
 (display-time-mode t)
 
-;;color identifies (colors every variable different)
-(prelude-require-package 'color-identifiers-mode)
-;;(add-hook 'prog-mode-hook 'global-color-identifiers-mode)
-;;(global-color-identifiers-mode)
-
-(prelude-require-package 'rainbow-delimiters)
-;; (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-
 ;;store backups in one folder instead of next to the file
 (setq backup-directory-alist `(("." . "~/.emacs.d/.backups")))
 
@@ -35,5 +27,32 @@ scroll-step 1)
 (setq-default save-place t)
 (require 'saveplace)
 
-;;Enable bear mode  (hotkeys and such)
-(bear-mode 1)
+(prelude-require-package 'yasnippet)
+
+(setq yas-snippet-dirs
+      '("~/.emacs.d/snippets"
+        ))
+
+(require 'yasnippet)
+(yas-reload-all)
+(add-hook 'prog-mode-hook 'yas-minor-mode)
+
+(defun mark-this-window-as-main ()
+  "Mark the current window as the main window."
+  (interactive)
+  (mapc (lambda (win) (set-window-parameter win 'main nil))
+    (window-list))
+  (set-window-parameter nil 'main t))
+
+(defun get-main-window()
+  "Find and return the main window or nil if non exists."
+  (cl-find-if (lambda (win) (window-parameter win 'main)) (window-list)))
+
+(defun just-my-main-window ()
+  "Show only the main window"
+  (interactive)
+  (delete-other-windows (get-main-window)))
+
+(add-hook 'prog-mode-hook 'mark-this-window-as-main)
+(add-hook 'text-mode-hook 'mark-this-window-as-main)
+(global-set-key (kbd "C-c C-m") 'just-my-main-window)

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+#key : mod
+#name : module exports
+# --
+module.exports = $1
