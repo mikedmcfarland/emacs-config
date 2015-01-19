@@ -23,6 +23,12 @@
 (map-all-evil-states (kbd "C-n") 'xah-new-empty-buffer)
 (map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
 
+
+;;include expand region
+(prelude-require-package 'expand-region)
+(global-set-key (kbd "C-S-SPC") 'er/contract-region)
+(global-set-key (kbd "C-SPC") 'er/expand-region)
+
 ;;Define KJ as espace while in insert
 (define-key evil-insert-state-map "k" #'cofi/maybe-exit)
 
@@ -32,15 +38,15 @@
   (let ((modified (buffer-modified-p)))
     (insert "k")
     (let ((evt (read-event (format "Insert %c to exit insert state" ?j)
-               nil 0.5)))
+                           nil 0.5)))
       (cond
        ((null evt) (message ""))
        ((and (integerp evt) (char-equal evt ?j))
-    (delete-char -1)
-    (set-buffer-modified-p modified)
-    (push 'escape unread-command-events))
+        (delete-char -1)
+        (set-buffer-modified-p modified)
+        (push 'escape unread-command-events))
        (t (setq unread-command-events (append unread-command-events
-                          (list evt))))))))
+                                              (list evt))))))))
 
 ;;Have escape actually exit things
 ;; esc quits

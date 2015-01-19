@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-#key : funcanon
+#key : funa
 #name : anonymous function
 # --
 function($1) {
