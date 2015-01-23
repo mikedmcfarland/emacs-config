@@ -22,7 +22,14 @@
 (map-all-evil-states (kbd "C-s") 'save-buffer)
 (map-all-evil-states (kbd "C-n") 'xah-new-empty-buffer)
 (map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
+(define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
 
+(defun evil-select-last-yanked-text ()
+  "uses evils markers to select the last yanked text"
+  (interactive)
+  (evil-goto-mark ?\[)
+  (evil-visual-char)
+  (evil-goto-mark ?\]))
 
 ;;include expand region
 (prelude-require-package 'expand-region)

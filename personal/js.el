@@ -59,3 +59,5 @@
   )))
 
 (map-all-evil-states (kbd "C-t") 'js-jump-to-implementation-or-test)
+
+(map-all-evil-states (kbd "C-S-l") 'js2r-log-this)
