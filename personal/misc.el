@@ -181,3 +181,13 @@ scroll-step 1)
 (define-key evil-insert-state-map (kbd "C-j") 'company-select-next-or-abort)
 (define-key evil-insert-state-map (kbd "C-j") 'company-select-next-or-abort)
 (define-key evil-insert-state-map (kbd "C-k") 'company-select-previous-or-abort)
+
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((js . t)
+   (emacs-lisp . t)))
+
+(setq org-indent-mode t)
+
+(org-indent-mode t)
