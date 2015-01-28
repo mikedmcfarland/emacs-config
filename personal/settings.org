@@ -16,8 +16,6 @@
   tabs/windowing consistently.
 
 * Emacs initialization
-** Prelude Modules
-   Prelude includes many packages you can toggle. Here's [[file:~/.emacs.d/prelude-modules.el][the list]] I enabled
 
 ** Personal Information
   Set my name and email
@@ -26,21 +24,25 @@
           user-mail-address "mikedmcfarland@gmail.com")
   #+end_src
 
+** Prelude Modules
+   Prelude includes many packages you can toggle. Here's [[file:~/.emacs.d/prelude-modules.el][the list]] I enabled
+
+
 ** Packages
    My required packages, prelude will make sure these are downloaded
    and required at startup.
    #+begin_src emacs-lisp
-    (prelude-require-packages
-     '(s
-       monokai-theme
-       restclient
-       powerline-evil
-       yasnippet
-       multiple-cursors
-       expand-region
-       evil-nerd-commenter
-       js2-refactor
-       ))
+     (prelude-require-packages
+      '(s
+        monokai-theme
+        restclient
+        powerline-evil
+        yasnippet
+        multiple-cursors
+        expand-region
+        evil-nerd-commenter
+        js2-refactor
+        ))
    #+end_src
 
 ** Backups
@@ -139,7 +141,7 @@
   Little script for jumping between tests and implementations. Made
   with a [[http://emacs.stackexchange.com/questions/7308/define-key-to-toggle-between-javascript-implementation-and-test-file/7316#7316][little help]]. Expects A structure with a lib directory for
   implementations, and a test directory for specs, Like so:
-  #+begin_code options
+  #+begin_code
     lib/foo.js
     lib/someDir/bar.js
     test/fooSpec.js
@@ -175,6 +177,25 @@
          ((member "lib" current)  (js-jump-to current "lib" "test" 'js-format-test-name))
          (t (error "not within a test or lib directory"))
       )))
+  #+end_src
+
+
+
+* Jade
+  jade-mode didn't install, so I've added it into vendor as a submodule
+  and am initializing it manually
+  #+begin_src emacs-lisp
+    (add-to-list 'load-path "~/.emacs.d/vendor/jade-mode")
+    (require 'jade-mode)
+    (add-to-list 'auto-mode-alist '("\\.jade$" . jade-mode))
+  #+end_src
+
+
+* e-lisp
+  Emacs has warnings about documenting elisp code
+  I don't following these rules, so disable them
+  #+begin_src emacs-lisp
+    (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
   #+end_src
 
 
@@ -247,6 +268,7 @@
    #+end_src
 
 *** TODO make tab binding / completion a minor mode
+
 * Custom Commands
 ** create-new-empty-buffer
 #+begin_src emacs-lisp
@@ -292,9 +314,29 @@
     #+end_src
 
 
+
 * Org-mode
 ** publiishing
-   src
+   Define the thrown component, This will look in the thrown src directory and
+   build all the org files into html (for my blog).
+   #+begin_src emacs-lisp
+     (setq org-publish-project-alist
+           '(("org-thrown"
+              ;; Path to your org files.
+              :base-directory "~/projects/thrown/src"
+              :base-extension "org"
+
+              :publishing-directory "~/projects/thrown/src"
+              :recursive t
+              :publishing-function org-html-publish-to-html
+              :headline-levels 4
+              :html-extension "html"
+              :body-only t ;; Only export section between <body> </body>)
+
+             ("thrown" :components ("org-thrown")))))
+
+   #+end_src
+
 ** org-babel
    language definitions for org babel
    #+begin_src emacs-lisp
@@ -333,6 +375,7 @@
 
 
 
+
 * Evil Key Bindings
 
   #+begin_src emacs-lisp
@@ -361,6 +404,7 @@
     (map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
     (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
   #+end_src
+
 
 * Evil
   Evil is an emulation layer for Vim ontop of emacs. It's a very faithful emulation.
