@@ -1,9 +1,23 @@
-#+TITLE: Mike McFarland Emacs Configuration
+#+STARTUP: showall indent
+#+options: num:nil
+#+BEGIN_HTML
+---
+title: Emacs Configuration
+date: 2015-01-30
+draft: false
+---
+#+END_HTML
+
+#+TITLE: Emacs Configuration
+
 
 * About
 ** This File
   This is an emacs org-mode file which generates my personal emacs
-  configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]].
+  configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]]. I
+  share my config across multiple machines and use git to version it.
+  [[http://github.com/mikedmcfarland/emacs-config][Here is my configuration on github]].
+
 ** This  Emacs Config
   My workflow involves running mainly one window in a frame. And
   running many frames at once (all in daemon mode). Many settings are
@@ -25,7 +39,7 @@
   #+end_src
 
 ** Prelude Modules
-   Prelude includes many packages you can toggle. Here's [[file:~/.emacs.d/prelude-modules.el][the list]] I enabled
+   Prelude includes many packages you can toggle. Here's [[https://github.com/mikedmcfarland/emacs-config/blob/master/prelude-modules.el][the list]] I enabled.
 
 
 ** Packages
@@ -141,12 +155,12 @@
   Little script for jumping between tests and implementations. Made
   with a [[http://emacs.stackexchange.com/questions/7308/define-key-to-toggle-between-javascript-implementation-and-test-file/7316#7316][little help]]. Expects A structure with a lib directory for
   implementations, and a test directory for specs, Like so:
-  #+begin_code
+  #+BEGIN_EXAMPLE
     lib/foo.js
     lib/someDir/bar.js
     test/fooSpec.js
     test/someDir/barSpec.js
-  #+end_code
+  #+END_EXAMPLE
 
   #+begin_src emacs-lisp
     (defun js-jump-to (current from to format-name)
@@ -191,9 +205,9 @@
   #+end_src
 
 
-* e-lisp
-  Emacs has warnings about documenting elisp code
-  I don't following these rules, so disable them
+* elisp
+  Emacs has warnings about documenting elisp code.
+  I don't follow these rules, so disable them
   #+begin_src emacs-lisp
     (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
   #+end_src
@@ -213,7 +227,8 @@
    #+end_src
 ** Company
 
-   Using mainly companys default prelude settings
+   Using mainly companys default prelude settings. Except I
+   don't want any delay in suggestions.
    #+begin_src emacs-lisp
      (setq company-idle-delay 0)
    #+end_src
@@ -316,27 +331,6 @@
 
 
 * Org-mode
-** publiishing
-   Define the thrown component, This will look in the thrown src directory and
-   build all the org files into html (for my blog).
-   #+begin_src emacs-lisp
-     (setq org-publish-project-alist
-           '(("org-thrown"
-              ;; Path to your org files.
-              :base-directory "~/projects/thrown/src"
-              :base-extension "org"
-
-              :publishing-directory "~/projects/thrown/src"
-              :recursive t
-              :publishing-function org-html-publish-to-html
-              :headline-levels 4
-              :html-extension "html"
-              :body-only t ;; Only export section between <body> </body>)
-
-             ("thrown" :components ("org-thrown")))))
-
-   #+end_src
-
 ** org-babel
    language definitions for org babel
    #+begin_src emacs-lisp
@@ -372,6 +366,11 @@
     (global-set-key (kbd "C-S-SPC") 'er/contract-region)
     (global-set-key (kbd "C-SPC") 'er/expand-region)
   #+end_src
+
+** TODO Clean up keyboard shortcuts
+- More consistency is needed, think about appropriate prefixes.
+- Ctrl p is a poor project launching shortcut (too many
+  applications use it for 'previous'
 
 
 
@@ -533,3 +532,13 @@
 
     (defvar mc--default-cmds-to-run-once nil)
   #+end_src
+
+* TODO Investigate helm swoop
+This looks pretty powerful, and may replace any need for multiple
+cursors (for my editing needs). Confirm it plays nice with evil.
+
+
+* TODO Bring in node REPL mode from chromebook
+- [ ] configure for es6 with 6to5
+- [ ] Clean up implementation
+- [ ] pull from chromebook into master
