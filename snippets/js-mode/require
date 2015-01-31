@@ -2,4 +2,4 @@
 #key : req
 #name : require
 # --
-${1:$(s-lower-camel-case (file-name-nondirectory yas/text))} = require('${1:path}')
+require('${1:path}')
