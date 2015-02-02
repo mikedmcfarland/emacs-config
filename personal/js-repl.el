@@ -1,6 +1,6 @@
-(prelude-require-package 'nodejs-repl)
+;; (prelude-require-package 'nodejs-repl)
 
-(setq-default nodejs-repl-command "node")
+(setq-default nodejs-repl-command "6to5-node")
 
 (defun nodejs-repl-eval-region (start end)
   "Evaluate the region specified by `START' and `END'."
