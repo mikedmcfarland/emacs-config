@@ -3,13 +3,13 @@
 #+BEGIN_HTML
 ---
 title: Emacs Configuration
-date: 2015-01-30
+date: 2015-01-29
 draft: false
+tags : [linux]
 ---
 #+END_HTML
 
 #+TITLE: Emacs Configuration
-
 
 * About
 ** This File
@@ -32,7 +32,7 @@ draft: false
 * Emacs initialization
 
 ** Personal Information
-  Set my name and email
+Set my name and email
   #+begin_src emacs-lisp
     (setq user-full-name "Mike McFarland"
           user-mail-address "mikedmcfarland@gmail.com")
@@ -56,6 +56,7 @@ draft: false
         expand-region
         evil-nerd-commenter
         js2-refactor
+        key-chord
         ))
    #+end_src
 
@@ -342,29 +343,91 @@ draft: false
         (sh . t)))
    #+end_src
 
-* Global Key Bindings
+   open source code blocks in new frames.
+   #+begin_src emacs-lisp
+     (set 'org-src-window-setup 'other-frame)
+   #+end_src
+
+   org mode maps the language mode by name, remap to proper modes
+   when the language name doesn't match exactly
+   #+begin_src emacs-lisp
+     (add-to-list 'org-src-lang-modes '("js" . js2))
+   #+end_src
+
+
+* Key Bindings
 
   #+begin_src emacs-lisp
-    (global-set-key (kbd "C-c C-m") 'just-my-main-window)
 
-    (global-set-key (kbd "C-j") 'company-select-next-or-abort)
-    (global-set-key (kbd "C-k") 'company-select-previous-or-abort)
+    (defun map-all-evil-states (keys action)
+      "maps key combination to action for all evil modes"
+      (define-key evil-normal-state-map keys action)
+      (define-key evil-insert-state-map keys action)
+      (define-key evil-visual-state-map keys action))
+    (defun map-normal-visual-evil-states (keys action)
+      (define-key evil-normal-state-map keys action)
+      (define-key evil-visual-state-map keys action))
+
+    (global-set-key (kbd "C-c C-t")   'js-jump-to-implementation-or-test)
+
+    ;;map control s p to finding a file with projectile
+    (global-set-key (kbd "C-S-p") 'projectile-find-file)
+
+    ;;have j and k go down to next visual line
+    (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+    (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+
+    (global-set-key (kbd "C-c C-n") 'create-new-empty-buffer)
+    (global-set-key (kbd "C-c C-o") 'just-my-main-window)
+    (define-key org-mode-map (kbd "C-c C-o") 'just-my-main-window)
 
     (global-set-key (kbd "RET") 'newline-and-indent)
 
-    (global-set-key (kbd "C-p") 'projectile-find-file)
     ;;Remap alt p to switching a project with projectile
     (global-set-key (kbd "M-p") 'projectile-switch-project)
 
     ;;Have no idea why up and down are doing absurd things, but this helped
-    (global-set-key (kbd "<up>") 'evil-previous-visual-line)
-    (global-set-key (kbd "<down>") 'evil-next-visual-line)
     (global-set-key (kbd "C-h") 'previous-buffer)
     (global-set-key (kbd "C-l") 'next-buffer)
-    (global-set-key (kbd "C-q") 'kill-this-buffer)
+    (global-set-key (kbd "C-S-h") 'winner-undo)
+    (global-set-key (kbd "C-S-l") 'winner-redo)
+    (global-set-key (kbd "C-c C-q") 'kill-this-buffer)
+
+    (global-set-key (kbd "C-S-m") 'mc/mark-all-dwim)
+    (define-key mc/keymap (kbd "C-n") 'mc/mark-next-like-this)
+    (define-key mc/keymap (kbd "C-S-n") 'mc/skip-to-next-like-this)
+    ;; (define-key mc/keymap (kbd "C-p") 'mc/mark-previous-like-this)
+    (define-key mc/keymap (kbd "C-p") 'mc/unmark-next-like-this)
+    (define-key mc/keymap (kbd "C-S-p") 'mc/unmark-previous-like-this)
+    (define-key mc/keymap (kbd "M-m") 'mc/mark-more-like-this-extended)
 
     (global-set-key (kbd "C-S-SPC") 'er/contract-region)
     (global-set-key (kbd "C-SPC") 'er/expand-region)
+
+    ;;Unmap prelude evils ace jump
+    (define-key evil-normal-state-map (kbd "SPC") nil)
+    (map-normal-visual-evil-states (kbd "SPC SPC") 'evil-ace-jump-word-mode)
+    (map-normal-visual-evil-states (kbd "SPC r") 'js2r-rename-var)
+    (map-normal-visual-evil-states (kbd "SPC l") 'js2r-log-this)
+    (map-normal-visual-evil-states (kbd "SPC c") 'evilnc-comment-or-uncomment-lines)
+
+    (global-set-key (kbd "C-s") 'save-buffer)
+    (map-normal-visual-evil-states (kbd "SPC s") 'save-buffer)
+
+    (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
+
+    (evil-define-key `normal org-src-mode-map (kbd "SPC '") 'org-edit-src-save-and-exit)
+    (evil-define-key `normal org-mode-map (kbd "SPC '") 'org-edit-special)
+
+    (defun org-edit-src-save-and-exit()
+      (interactive)
+      (org-edit-src-save)
+      (org-edit-src-exit 'exit))
+
+    ;; (defun set-keys-for-org-src
+    ;;     (map-normal-visual-evil-states (kbd "SPC '") 'org-edit-src-exit))
+    ;; (defun set-keys-for-org
+    ;;     (map-normal-visual-evil-states (kbd "SPC '") 'org-edit-special))
   #+end_src
 
 ** TODO Clean up keyboard shortcuts
@@ -373,37 +436,13 @@ draft: false
   applications use it for 'previous'
 
 
-
-
-* Evil Key Bindings
-
-  #+begin_src emacs-lisp
-    (defun map-all-evil-states (keys action)
-      "maps key combination to action for all evil modes"
-      (define-key evil-normal-state-map keys action)
-      (define-key evil-insert-state-map keys action)
-      (define-key evil-visual-state-map keys action))
-
-    (define-key evil-insert-state-map (kbd "C-j") 'company-select-next-or-abort)
-    (define-key evil-insert-state-map (kbd "C-k") 'company-select-previous-or-abort)
-
-    (map-all-evil-states (kbd "C-S-r") 'js2r-rename-var)
-    (map-all-evil-states (kbd "C-S-l") 'js2r-log-this)
-    (map-all-evil-states (kbd "C-t")   'js-jump-to-implementation-or-test)
-
-    ;;map control p to finding a file with projectile
-    (map-all-evil-states (kbd "C-p") 'projectile-find-file)
-
-    ;;have j and k go down to next visual line
-    (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
-    (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
-
-    (map-all-evil-states (kbd "C-s") 'save-buffer)
-    (map-all-evil-states (kbd "C-n") 'create-new-empty-buffer)
-    (map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
-    (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
-  #+end_src
-
+* Key chords
+kj is a convenient exit compared to escape
+#+begin_src emacs-lisp
+  (setq key-chord-two-keys-delay 0.5)
+  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
+  (key-chord-mode +1)
+#+end_src
 
 * Evil
   Evil is an emulation layer for Vim ontop of emacs. It's a very faithful emulation.
@@ -418,29 +457,6 @@ draft: false
        (evil-visual-char)
        (evil-goto-mark ?\]))
    #+end_src
-** kj to exit insert mode
-  kj is more convenient then escape for exiting insert mode
-  #+begin_src emacs-lisp
-    ;;Define KJ as espace while in insert
-    (define-key evil-insert-state-map "k" #'cofi/maybe-exit)
-
-    (evil-define-command cofi/maybe-exit ()
-      :repeat change
-      (interactive)
-      (let ((modified (buffer-modified-p)))
-        (insert "k")
-        (let ((evt (read-event (format "Insert %c to exit insert state" ?j)
-                               nil 0.5)))
-          (cond
-           ((null evt) (message ""))
-           ((and (integerp evt) (char-equal evt ?j))
-            (delete-char -1)
-            (set-buffer-modified-p modified)
-            (push 'escape unread-command-events))
-           (t (setq unread-command-events (append unread-command-events
-                                                  (list evt))))))))
-  #+end_src
-
 ** Escape should exit things
   Stole this from somewhere, attempts to map escape to various
   exits. It isn't perfect however, and I still need ctrl g from time
@@ -463,12 +479,14 @@ draft: false
   (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
   (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
   (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+  (define-key mc/keymap [escape] 'mc/keyboard-quit)
   (global-set-key [escape] 'evil-exit-emacs-state)
 #+end_src
 
-*** TODO Make escape work consitently
+*** DONE Make escape work consitently
+CLOSED: [2015-02-07 Sat 20:50]
     Escape fails in Helm, Js2 refactor, and I'm sure other various places
-
 
 ** Evil vs mutliple-cursors
   Multiple cursors and evil [[https://github.com/magnars/multiple-cursors.el/issues/17][don't play well together]]. I ripped this
@@ -533,7 +551,28 @@ draft: false
     (defvar mc--default-cmds-to-run-once nil)
   #+end_src
 
-* TODO Investigate helm swoop
+* TODO helm swoop
+#+begin_src emacs-lisp
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+    (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+    (add-to-list 'load-path "~/.emacs.d/vendor/helm-swoop")
+
+    (require 'use-package)
+
+    (use-package helm-swoop
+     :bind
+     (("C-S-s" . helm-swoop))
+     :config
+     (progn
+       (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+       (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
+    )
+  (add-to-list 'load-path "~/.emacs.d/vendor/Emacs-wgrep")
+  (require 'wgrep)
+  (require 'wgrep-helm)
+  (require 'wgrep-ack)
+#+end_src
+
 This looks pretty powerful, and may replace any need for multiple
 cursors (for my editing needs). Confirm it plays nice with evil.
 
@@ -542,3 +581,9 @@ cursors (for my editing needs). Confirm it plays nice with evil.
 - [ ] configure for es6 with 6to5
 - [ ] Clean up implementation
 - [ ] pull from chromebook into master
+* TODO Find a way to highlight all occurrences of variable
+- Do it with evil searches http://vim.wikia.com/wiki/Search_for_visually_selected_text
+- Do it with js2 AST http://mihai.bazon.net/projects/editing-javascript-with-emacs-js2-mode/js2-highlight-vars-mode
+
+* TODO Fix copy and paste between emacs and clipboard
+Probably evil related, since being in insert mode when doing the copy seems to work.

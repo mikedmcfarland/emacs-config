@@ -1,3 +1,12 @@
 [submodule "vendor/jade-mode"]
 	path = vendor/jade-mode
 	url = https://github.com/brianc/jade-mode
+[submodule "vendor/helm-swoop"]
+	path = vendor/helm-swoop
+	url = https://github.com/ShingoFukuyama/helm-swoop.git
+[submodule "vendor/use-package"]
+	path = vendor/use-package
+	url = https://github.com/jwiegley/use-package.git
+[submodule "vendor/Emacs-wgrep"]
+	path = vendor/Emacs-wgrep
+	url = https://github.com/mhayashi1120/Emacs-wgrep.git
