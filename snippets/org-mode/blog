@@ -3,11 +3,11 @@
 # key: blog
 # --
 #+STARTUP: showall indent
-#+STARTUP: hidestars
+#+options: num:nil
 #+BEGIN_HTML
 ---
-layout: default
-title: ${1:title}
-excerpt: ${2:excerpt}
+title: ${1:`(s-titleize (file-name-nondirectory (file-name-sans-extension(buffer-file-name))))`}
+date: ${2:`(insert (s-trim (shell-command-to-string "todays-date")))`}
 ---
+#+END_HTML
 $0

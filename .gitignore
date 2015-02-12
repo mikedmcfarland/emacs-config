@@ -21,3 +21,5 @@ session*
 .cask
 tramp
 /var/pcache
+
+/personal/settings.el
