@@ -1,0 +1,10 @@
+#name: use-package
+#key: use-package
+# --
+(use-package ${1:package-name}
+  :load-path "~/.emacs.d/vendor/$1"
+  :bind
+  (("${2:key}" . ${3:action}))
+  :config
+  (progn
+    $4))

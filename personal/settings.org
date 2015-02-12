@@ -46,6 +46,11 @@ Set my name and email
    My required packages, prelude will make sure these are downloaded
    and required at startup.
    #+begin_src emacs-lisp
+     (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+     (require 'use-package)
+
+     (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+
      (prelude-require-packages
       '(s
         monokai-theme
@@ -57,7 +62,7 @@ Set my name and email
         evil-nerd-commenter
         js2-refactor
         key-chord
-        ))
+        helm-swoop))
    #+end_src
 
 ** Backups
@@ -91,6 +96,13 @@ Set my name and email
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist '(font .   "Source Code Pro 12" ))
    #+end_src
+
+   Add linenumbers
+   #+begin_src emacs-lisp
+     (setq linum-format "%3d ")
+     (add-hook 'prog-mode-hook 'linum-mode)
+   #+end_src
+
 
    A few miscallaneious things
    #+begin_src emacs-lisp
@@ -200,9 +212,9 @@ Set my name and email
   jade-mode didn't install, so I've added it into vendor as a submodule
   and am initializing it manually
   #+begin_src emacs-lisp
-    (add-to-list 'load-path "~/.emacs.d/vendor/jade-mode")
-    (require 'jade-mode)
-    (add-to-list 'auto-mode-alist '("\\.jade$" . jade-mode))
+    (use-package jade-mode
+      :load-path "~/.emacs.d/vendor/jade-mode"
+      :mode "\\.jade$")
   #+end_src
 
 
@@ -358,17 +370,24 @@ Set my name and email
 * Key Bindings
 
   #+begin_src emacs-lisp
-
+    ;;Unmap prelude evils ace jump
+    (define-key evil-normal-state-map (kbd "SPC") nil)
+    ;;remove forward motion from evil motion ma
+    (define-key evil-motion-state-map " " nil)
     (defun map-all-evil-states (keys action)
       "maps key combination to action for all evil modes"
       (define-key evil-normal-state-map keys action)
       (define-key evil-insert-state-map keys action)
       (define-key evil-visual-state-map keys action))
-    (defun map-normal-visual-evil-states (keys action)
+    (defun map-n-v-evil-states (keys action)
       (define-key evil-normal-state-map keys action)
       (define-key evil-visual-state-map keys action))
 
-    (global-set-key (kbd "C-c C-t")   'js-jump-to-implementation-or-test)
+    (defun map-n-i-evil-states (keys action)
+      (define-key evil-normal-state-map keys action)
+      (define-key evil-insert-state-map keys action))
+
+    (define-key evil-normal-state-map (kbd "g t") 'js-jump-to-implementation-or-test)
 
     ;;map control s p to finding a file with projectile
     (global-set-key (kbd "C-S-p") 'projectile-find-file)
@@ -386,33 +405,31 @@ Set my name and email
     ;;Remap alt p to switching a project with projectile
     (global-set-key (kbd "M-p") 'projectile-switch-project)
 
-    ;;Have no idea why up and down are doing absurd things, but this helped
     (global-set-key (kbd "C-h") 'previous-buffer)
     (global-set-key (kbd "C-l") 'next-buffer)
     (global-set-key (kbd "C-S-h") 'winner-undo)
     (global-set-key (kbd "C-S-l") 'winner-redo)
     (global-set-key (kbd "C-c C-q") 'kill-this-buffer)
 
-    (global-set-key (kbd "C-S-m") 'mc/mark-all-dwim)
+    (global-set-key (kbd "C-S-m") 'mc/mark-all-like-this-dwim)
+    (map-n-v-evil-states (kbd "SPC m") 'mc/mark-next-like-this)
     (define-key mc/keymap (kbd "C-n") 'mc/mark-next-like-this)
     (define-key mc/keymap (kbd "C-S-n") 'mc/skip-to-next-like-this)
-    ;; (define-key mc/keymap (kbd "C-p") 'mc/mark-previous-like-this)
     (define-key mc/keymap (kbd "C-p") 'mc/unmark-next-like-this)
     (define-key mc/keymap (kbd "C-S-p") 'mc/unmark-previous-like-this)
-    (define-key mc/keymap (kbd "M-m") 'mc/mark-more-like-this-extended)
 
     (global-set-key (kbd "C-S-SPC") 'er/contract-region)
     (global-set-key (kbd "C-SPC") 'er/expand-region)
 
-    ;;Unmap prelude evils ace jump
-    (define-key evil-normal-state-map (kbd "SPC") nil)
-    (map-normal-visual-evil-states (kbd "SPC SPC") 'evil-ace-jump-word-mode)
-    (map-normal-visual-evil-states (kbd "SPC r") 'js2r-rename-var)
-    (map-normal-visual-evil-states (kbd "SPC l") 'js2r-log-this)
-    (map-normal-visual-evil-states (kbd "SPC c") 'evilnc-comment-or-uncomment-lines)
+
+    (map-n-v-evil-states (kbd "SPC j") 'evil-ace-jump-two-chars-mode)
+    (map-n-v-evil-states (kbd "SPC r") 'js2r-rename-var)
+    (map-n-v-evil-states (kbd "SPC l") 'js2r-log-this)
+    (map-n-v-evil-states (kbd "SPC c") 'evilnc-comment-or-uncomment-lines)
+    (map-n-v-evil-states (kbd "SPC p") 'projectile-find-file)
 
     (global-set-key (kbd "C-s") 'save-buffer)
-    (map-normal-visual-evil-states (kbd "SPC s") 'save-buffer)
+    (map-n-v-evil-states (kbd "SPC s") 'save-buffer)
 
     (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
 
@@ -424,10 +441,31 @@ Set my name and email
       (org-edit-src-save)
       (org-edit-src-exit 'exit))
 
-    ;; (defun set-keys-for-org-src
-    ;;     (map-normal-visual-evil-states (kbd "SPC '") 'org-edit-src-exit))
-    ;; (defun set-keys-for-org
-    ;;     (map-normal-visual-evil-states (kbd "SPC '") 'org-edit-special))
+
+    ;; (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
+    (global-set-key (kbd "C-S-i") 'helm-projectile-ack)
+
+    ;; (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+    ;; (require 'helm-swoop)
+    ;; (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
+
+    (map-n-v-evil-states (kbd "go") 'view-file-other-frame)
+    (define-key company-active-map (kbd "C-n") 'company-select-next-or-abort)
+    (define-key company-active-map (kbd "C-p") 'company-select-previous-or-abort)
+
+    (define-key js2-mode-map (kbd "C-c C-o") nil)
+    ;; (map-n-i-evil-states (kbd "C-S-k") 'move-text-up)
+    ;; (map-n-i-evil-states (kbd "C-S-j") 'move-text-down)
+    ;; (evil-define-key `normal js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
+    ;; (evil-define-key `insert js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
+    ;; (evil-define-key `normal js2-mode-map (kbd "C-S-j") 'js2r-move-line-down)
+    ;; (evil-define-key `insert js2-mode-map (kbd "C-S-j") 'js2r-line-move-down)
+
+    ;; (define-key evil-normal-state-local-map (kbd "<right>") 'hannesr/evil-normal-move-character-forward)
+    ;; (define-key evil-normal-state-local-map (kbd "<left>") 'hannesr/evil-normal-move-character-backward)
+    ;; (define-key evil-visual-state-local-map (kbd "<right>") 'hannesr/evil-visual-move-selection-forward)
+    ;; (define-key evil-visual-state-local-map (kbd "<left>") 'hannesr/evil-visual-move-selection-backward)
+
   #+end_src
 
 ** TODO Clean up keyboard shortcuts
@@ -450,12 +488,20 @@ kj is a convenient exit compared to escape
 ** Select last yanked text
    This function will select whatever texted you pasted last (in the buffer).
    #+begin_src emacs-lisp
+
      (defun evil-select-last-yanked-text ()
        "uses evils markers to select the last yanked text"
        (interactive)
        (evil-goto-mark ?\[)
        (evil-visual-char)
        (evil-goto-mark ?\]))
+
+     ;; (defun evil-yank-and-indent-text ()
+     ;;   (interactive)
+     ;;   (evil-paste-after)
+     ;;   (evil-indent)
+     ;;   (evil-goto-mark ?\[))
+
    #+end_src
 ** Escape should exit things
   Stole this from somewhere, attempts to map escape to various
@@ -483,6 +529,13 @@ kj is a convenient exit compared to escape
   (define-key mc/keymap [escape] 'mc/keyboard-quit)
   (global-set-key [escape] 'evil-exit-emacs-state)
 #+end_src
+
+** Miscellaneous
+#+begin_src emacs-lisp
+  (require 'evil-visualstar)
+  (global-evil-visualstar-mode t)
+#+end_src
+
 
 *** DONE Make escape work consitently
 CLOSED: [2015-02-07 Sat 20:50]
@@ -551,30 +604,89 @@ CLOSED: [2015-02-07 Sat 20:50]
     (defvar mc--default-cmds-to-run-once nil)
   #+end_src
 
-* TODO helm swoop
+* Mutliple Cursors
 #+begin_src emacs-lisp
-  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-    (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
-    (add-to-list 'load-path "~/.emacs.d/vendor/helm-swoop")
-
-    (require 'use-package)
-
-    (use-package helm-swoop
-     :bind
-     (("C-S-s" . helm-swoop))
-     :config
-     (progn
-       (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
-       (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
-    )
-  (add-to-list 'load-path "~/.emacs.d/vendor/Emacs-wgrep")
-  (require 'wgrep)
-  (require 'wgrep-helm)
-  (require 'wgrep-ack)
+  (require 'multiple-cursors)
+  ;; Don't use expand-region fast keys
+  (setq expand-region-fast-keys-enabled nil)
 #+end_src
 
-This looks pretty powerful, and may replace any need for multiple
-cursors (for my editing needs). Confirm it plays nice with evil.
+* Ace Jump
+#+begin_src emacs-lisp
+  (setq ace-jump-mode-scope 'frame)
+  (setq ace-jump-mode-move-keys
+        (loop for i from ?a to ?z collect i))
+
+  (require 'ace-jump-mode)
+  (defun evil-ace-jump-two-chars-mode (query-char query-char-2)
+    "evil AceJump two chars mode"
+    (interactive (list (read-char "First Char:")
+                       (read-char "Second:")))
+
+    (if (eq (ace-jump-char-category query-char) 'other)
+      (error "[AceJump] Non-printable character"))
+
+    ;; others : digit , alpha, punc
+    (setq ace-jump-query-char query-char)
+    (setq ace-jump-current-mode 'evil-ace-jump-char-mode)
+    (ace-jump-do (regexp-quote (concat (char-to-string query-char)
+                                       (char-to-string query-char-2)))))
+#+end_src
+
+* DONE helm swoop
+CLOSED: [2015-02-11 Wed 14:05]
+#+begin_src emacs-lisp
+  (use-package helm-swoop
+    :load-path "~/.emacs.d/vendor/helm-swoop"
+    :config
+    (setq
+     helm-swoop-pre-input-function (lambda () "empty unless in visual mode"
+                                     (if (evil-visual-state-p)
+                                         (thing-at-point 'symbol)
+                                       ""))
+     helm-swoop-speed-or-color t)
+    (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
+    (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+    (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
+#+end_src
+
+* wgrep-ag
+#+begin_src emacs-lisp
+  (use-package wgrep
+    :load-path "~/.emacs.d/vendor/Emacs-wgrep"
+    :config
+    (progn
+      (use-package wgrep-helm)
+      (use-package wgrep-ack)
+      ;; (use-package wgrep-ag)
+
+      ;; (use-package helm-ag
+      ;;   :ensure t
+      ;;   :load-path "~/.emacs.d/vendor/emacs-helm-ag"
+      ;;   :config
+      ;;   (define-key helm-ag-map (kbd "C-c C-s") 'helm-grep-save-results))
+      ;; )
+      ))
+
+#+end_src
+
+* Drag Stuff
+#+begin_src emacs-lisp
+  (use-package drag-stuff
+      :load-path "~/.emacs.d/vendor/drag-stuff.el"
+      :bind
+      (("C-S-j" . drag-stuff-down)
+       ("C-S-k" . drag-stuff-up))
+      :config
+      (drag-stuff-mode t))
+#+end_src
+** TODO Evil compatibility improvements
+- [ ] visual line mode is broken.
+- [ ] being able to move rectangular regions would be nice
+
+* TODO Refactor emacs configuration
+- [ ] use, use-package, for more cohesion.
+- [ ] transition away from prelude
 
 
 * TODO Bring in node REPL mode from chromebook
@@ -582,7 +694,6 @@ cursors (for my editing needs). Confirm it plays nice with evil.
 - [ ] Clean up implementation
 - [ ] pull from chromebook into master
 * TODO Find a way to highlight all occurrences of variable
-- Do it with evil searches http://vim.wikia.com/wiki/Search_for_visually_selected_text
 - Do it with js2 AST http://mihai.bazon.net/projects/editing-javascript-with-emacs-js2-mode/js2-highlight-vars-mode
 
 * TODO Fix copy and paste between emacs and clipboard
