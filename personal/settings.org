@@ -1,9 +1,23 @@
-#+TITLE: Mike McFarland Emacs Configuration
+#+STARTUP: showall indent
+#+options: num:nil
+#+BEGIN_HTML
+---
+title: Emacs Configuration
+date: 2015-01-29
+draft: false
+tags : [linux]
+---
+#+END_HTML
+
+#+TITLE: Emacs Configuration
 
 * About
 ** This File
   This is an emacs org-mode file which generates my personal emacs
-  configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]].
+  configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]]. I
+  share my config across multiple machines and use git to version it.
+  [[http://github.com/mikedmcfarland/emacs-config][Here is my configuration on github]].
+
 ** This  Emacs Config
   My workflow involves running mainly one window in a frame. And
   running many frames at once (all in daemon mode). Many settings are
@@ -18,20 +32,25 @@
 * Emacs initialization
 
 ** Personal Information
-  Set my name and email
+Set my name and email
   #+begin_src emacs-lisp
     (setq user-full-name "Mike McFarland"
           user-mail-address "mikedmcfarland@gmail.com")
   #+end_src
 
 ** Prelude Modules
-   Prelude includes many packages you can toggle. Here's [[file:~/.emacs.d/prelude-modules.el][the list]] I enabled
+   Prelude includes many packages you can toggle. Here's [[https://github.com/mikedmcfarland/emacs-config/blob/master/prelude-modules.el][the list]] I enabled.
 
 
 ** Packages
    My required packages, prelude will make sure these are downloaded
    and required at startup.
    #+begin_src emacs-lisp
+     (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+     (require 'use-package)
+
+     (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+
      (prelude-require-packages
       '(s
         monokai-theme
@@ -42,7 +61,8 @@
         expand-region
         evil-nerd-commenter
         js2-refactor
-        ))
+        key-chord
+        helm-swoop))
    #+end_src
 
 ** Backups
@@ -76,6 +96,13 @@
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist '(font .   "Source Code Pro 12" ))
    #+end_src
+
+   Add linenumbers
+   #+begin_src emacs-lisp
+     (setq linum-format "%3d ")
+     (add-hook 'prog-mode-hook 'linum-mode)
+   #+end_src
+
 
    A few miscallaneious things
    #+begin_src emacs-lisp
@@ -141,12 +168,12 @@
   Little script for jumping between tests and implementations. Made
   with a [[http://emacs.stackexchange.com/questions/7308/define-key-to-toggle-between-javascript-implementation-and-test-file/7316#7316][little help]]. Expects A structure with a lib directory for
   implementations, and a test directory for specs, Like so:
-  #+begin_code
+  #+BEGIN_EXAMPLE
     lib/foo.js
     lib/someDir/bar.js
     test/fooSpec.js
     test/someDir/barSpec.js
-  #+end_code
+  #+END_EXAMPLE
 
   #+begin_src emacs-lisp
     (defun js-jump-to (current from to format-name)
@@ -184,74 +211,20 @@
 * Jade
   jade-mode didn't install, so I've added it into vendor as a submodule
   and am initializing it manually
-  # #+begin_src emacs-lisp
-  #   (add-to-list 'load-path "~/.emacs.d/vendor/jade-mode")
-  #   (require 'jade-mode)
-  #   (add-to-list 'auto-mode-alist '("\\.jade$" . jade-mode))
-  # #+end_src
-
-  flymake support
-  # #+begin_src emacs-lisp
-  #   (defun flymake-jade-init ()
-  #     (let* ((temp-file (flymake-init-create-temp-buffer-copy
-  #                    'flymake-create-temp-intemp))
-  #        (local-file (file-relative-name
-  #                     temp-file
-  #                     (file-name-directory buffer-file-name)))
-  #        (arglist (list local-file)))
-  #       (list "jade" arglist)))
-  #   (setq flymake-err-line-patterns
-  #          (cons '("\\(.*\\): \\(.+\\):\\([[:digit:]]+\\)$"
-  #                 2 3 nil 1)
-  #               flymake-err-line-patterns))
-  #   (add-to-list 'flymake-allowed-file-name-masks
-  #            '("\\.jade\\'" flymake-jade-init))
-  # #+end_src
+  #+begin_src emacs-lisp
+    (use-package jade-mode
+      :load-path "~/.emacs.d/vendor/jade-mode"
+      :mode "\\.jade$")
+  #+end_src
 
 
-* e-lisp
-  Emacs has warnings about documenting elisp code
-  I don't following these rules, so disable them
+* elisp
+  Emacs has warnings about documenting elisp code.
+  I don't follow these rules, so disable them
   #+begin_src emacs-lisp
     (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
   #+end_src
 
-
-
-* Flymake
-
-** flymake-create-temp-intemp
-  a function to be used instead of 'flymake-create-temp-inplace'. Doesn't
-  clutter up the file system where the src files are (puts flymake temp files
-  in temp directory)
-  # #+begin_src emacs-lisp
-  #   (defun flymake-create-temp-intemp (file-name prefix)
-  #     "Return file name in temporary directory for checking FILE-NAME.
-  #   This is a replacement for `flymake-create-temp-inplace'. The
-  #   difference is that it gives a file name in
-  #   `temporary-file-directory' instead of the same directory as
-  #   FILE-NAME.
-
-  #   For the use of PREFIX see that function.
-
-  #   Note that not making the temporary file in another directory
-  #   \(like here) will not if the file you are checking depends on
-  #   relative paths to other files \(for the type of checks flymake
-  #   makes)."
-  #     (unless (stringp file-name)
-  #       (error "Invalid file-name"))
-  #     (or prefix
-  #         (setq prefix "flymake"))
-  #     (let* ((name (concat
-  #                   (file-name-nondirectory
-  #                    (file-name-sans-extension file-name))
-  #                   "_" prefix))
-  #            (ext  (concat "." (file-name-extension file-name)))
-  #            (temp-name (make-temp-file name nil ext))
-  #            )
-  #       (flymake-log 3 "create-temp-intemp: file=%s temp=%s" file-name temp-name)
-  #       temp-name))
-  # #+end_src
 
 
 * Snippets And Autocompletion
@@ -267,7 +240,8 @@
    #+end_src
 ** Company
 
-   Using mainly companys default prelude settings
+   Using mainly companys default prelude settings. Except I
+   don't want any delay in suggestions.
    #+begin_src emacs-lisp
      (setq company-idle-delay 0)
    #+end_src
@@ -370,27 +344,6 @@
 
 
 * Org-mode
-** publiishing
-   Define the thrown component, This will look in the thrown src directory and
-   build all the org files into html (for my blog).
-   # #+begin_src emacs-lisp
-   #   (setq org-publish-project-alist
-   #         '(("org-thrown"
-   #            ;; Path to your org files.
-   #            :base-directory "~/projects/thrown/src"
-   #            :base-extension "org"
-
-   #            :publishing-directory "~/projects/thrown/src"
-   #            :recursive t
-   #            :publishing-function org-html-publish-to-html
-   #            :headline-levels 4
-   #            :html-extension "html"
-   #            :body-only t ;; Only export section between <body> </body>)
-
-   #           ("thrown" :components ("org-thrown")))))
-
-   # #+end_src
-
 ** org-babel
    language definitions for org babel
    #+begin_src emacs-lisp
@@ -402,63 +355,132 @@
         (sh . t)))
    #+end_src
 
-* Global Key Bindings
+   open source code blocks in new frames.
+   #+begin_src emacs-lisp
+     (set 'org-src-window-setup 'other-frame)
+   #+end_src
+
+   org mode maps the language mode by name, remap to proper modes
+   when the language name doesn't match exactly
+   #+begin_src emacs-lisp
+     (add-to-list 'org-src-lang-modes '("js" . js2))
+   #+end_src
+
+
+* Key Bindings
 
   #+begin_src emacs-lisp
-    (global-set-key (kbd "C-c C-m") 'just-my-main-window)
-
-    (global-set-key (kbd "C-j") 'company-select-next-or-abort)
-    (global-set-key (kbd "C-k") 'company-select-previous-or-abort)
-
-    (global-set-key (kbd "RET") 'newline-and-indent)
-
-    (global-set-key (kbd "C-p") 'projectile-find-file)
-    ;;Remap alt p to switching a project with projectile
-    (global-set-key (kbd "M-p") 'projectile-switch-project)
-
-    ;;Have no idea why up and down are doing absurd things, but this helped
-    (global-set-key (kbd "<up>") 'evil-previous-visual-line)
-    (global-set-key (kbd "<down>") 'evil-next-visual-line)
-    (global-set-key (kbd "C-h") 'previous-buffer)
-    (global-set-key (kbd "C-l") 'next-buffer)
-    (global-set-key (kbd "C-q") 'kill-this-buffer)
-
-    (global-set-key (kbd "C-S-SPC") 'er/contract-region)
-    (global-set-key (kbd "C-SPC") 'er/expand-region)
-  #+end_src
-
-
-
-
-* Evil Key Bindings
-
-  #+begin_src emacs-lisp
+    ;;Unmap prelude evils ace jump
+    (define-key evil-normal-state-map (kbd "SPC") nil)
+    ;;remove forward motion from evil motion ma
+    (define-key evil-motion-state-map " " nil)
     (defun map-all-evil-states (keys action)
       "maps key combination to action for all evil modes"
       (define-key evil-normal-state-map keys action)
       (define-key evil-insert-state-map keys action)
       (define-key evil-visual-state-map keys action))
+    (defun map-n-v-evil-states (keys action)
+      (define-key evil-normal-state-map keys action)
+      (define-key evil-visual-state-map keys action))
 
-    (define-key evil-insert-state-map (kbd "C-j") 'company-select-next-or-abort)
-    (define-key evil-insert-state-map (kbd "C-k") 'company-select-previous-or-abort)
+    (defun map-n-i-evil-states (keys action)
+      (define-key evil-normal-state-map keys action)
+      (define-key evil-insert-state-map keys action))
 
-    (map-all-evil-states (kbd "C-S-r") 'js2r-rename-var)
-    (map-all-evil-states (kbd "C-S-l") 'js2r-log-this)
-    (map-all-evil-states (kbd "C-t")   'js-jump-to-implementation-or-test)
+    (define-key evil-normal-state-map (kbd "g t") 'js-jump-to-implementation-or-test)
 
-    ;;map control p to finding a file with projectile
-    (map-all-evil-states (kbd "C-p") 'projectile-find-file)
+    ;;map control s p to finding a file with projectile
+    (global-set-key (kbd "C-S-p") 'projectile-find-file)
 
     ;;have j and k go down to next visual line
     (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
     (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
 
-    (map-all-evil-states (kbd "C-s") 'save-buffer)
-    (map-all-evil-states (kbd "C-n") 'create-new-empty-buffer)
-    (map-all-evil-states (kbd "C-/") 'evilnc-comment-or-uncomment-lines)
+    (global-set-key (kbd "C-c C-n") 'create-new-empty-buffer)
+    (global-set-key (kbd "C-c C-o") 'just-my-main-window)
+    (define-key org-mode-map (kbd "C-c C-o") 'just-my-main-window)
+
+    (global-set-key (kbd "RET") 'newline-and-indent)
+
+    ;;Remap alt p to switching a project with projectile
+    (global-set-key (kbd "M-p") 'projectile-switch-project)
+
+    (global-set-key (kbd "C-h") 'previous-buffer)
+    (global-set-key (kbd "C-l") 'next-buffer)
+    (global-set-key (kbd "C-S-h") 'winner-undo)
+    (global-set-key (kbd "C-S-l") 'winner-redo)
+    (global-set-key (kbd "C-c C-q") 'kill-this-buffer)
+
+    (global-set-key (kbd "C-S-m") 'mc/mark-all-like-this-dwim)
+    (map-n-v-evil-states (kbd "SPC m") 'mc/mark-next-like-this)
+    (define-key mc/keymap (kbd "C-n") 'mc/mark-next-like-this)
+    (define-key mc/keymap (kbd "C-S-n") 'mc/skip-to-next-like-this)
+    (define-key mc/keymap (kbd "C-p") 'mc/unmark-next-like-this)
+    (define-key mc/keymap (kbd "C-S-p") 'mc/unmark-previous-like-this)
+
+    (global-set-key (kbd "C-S-SPC") 'er/contract-region)
+    (global-set-key (kbd "C-SPC") 'er/expand-region)
+
+
+    (map-n-v-evil-states (kbd "SPC j") 'evil-ace-jump-two-chars-mode)
+    (map-n-v-evil-states (kbd "SPC r") 'js2r-rename-var)
+    (map-n-v-evil-states (kbd "SPC l") 'js2r-log-this)
+    (map-n-v-evil-states (kbd "SPC c") 'evilnc-comment-or-uncomment-lines)
+    (map-n-v-evil-states (kbd "SPC p") 'projectile-find-file)
+
+    (global-set-key (kbd "C-s") 'save-buffer)
+    (map-n-v-evil-states (kbd "SPC s") 'save-buffer)
+
     (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
+
+    (evil-define-key `normal org-src-mode-map (kbd "SPC '") 'org-edit-src-save-and-exit)
+    (evil-define-key `normal org-mode-map (kbd "SPC '") 'org-edit-special)
+
+    (defun org-edit-src-save-and-exit()
+      (interactive)
+      (org-edit-src-save)
+      (org-edit-src-exit 'exit))
+
+
+    ;; (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
+    (global-set-key (kbd "C-S-i") 'helm-projectile-ack)
+
+    ;; (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+    ;; (require 'helm-swoop)
+    ;; (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
+
+    (map-n-v-evil-states (kbd "go") 'view-file-other-frame)
+    (define-key company-active-map (kbd "C-n") 'company-select-next-or-abort)
+    (define-key company-active-map (kbd "C-p") 'company-select-previous-or-abort)
+
+    (define-key js2-mode-map (kbd "C-c C-o") nil)
+    ;; (map-n-i-evil-states (kbd "C-S-k") 'move-text-up)
+    ;; (map-n-i-evil-states (kbd "C-S-j") 'move-text-down)
+    ;; (evil-define-key `normal js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
+    ;; (evil-define-key `insert js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
+    ;; (evil-define-key `normal js2-mode-map (kbd "C-S-j") 'js2r-move-line-down)
+    ;; (evil-define-key `insert js2-mode-map (kbd "C-S-j") 'js2r-line-move-down)
+
+    ;; (define-key evil-normal-state-local-map (kbd "<right>") 'hannesr/evil-normal-move-character-forward)
+    ;; (define-key evil-normal-state-local-map (kbd "<left>") 'hannesr/evil-normal-move-character-backward)
+    ;; (define-key evil-visual-state-local-map (kbd "<right>") 'hannesr/evil-visual-move-selection-forward)
+    ;; (define-key evil-visual-state-local-map (kbd "<left>") 'hannesr/evil-visual-move-selection-backward)
+
   #+end_src
 
+** TODO Clean up keyboard shortcuts
+- More consistency is needed, think about appropriate prefixes.
+- Ctrl p is a poor project launching shortcut (too many
+  applications use it for 'previous'
+
+
+* Key chords
+kj is a convenient exit compared to escape
+#+begin_src emacs-lisp
+  (setq key-chord-two-keys-delay 0.5)
+  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
+  (key-chord-mode +1)
+#+end_src
 
 * Evil
   Evil is an emulation layer for Vim ontop of emacs. It's a very faithful emulation.
@@ -466,36 +488,21 @@
 ** Select last yanked text
    This function will select whatever texted you pasted last (in the buffer).
    #+begin_src emacs-lisp
+
      (defun evil-select-last-yanked-text ()
        "uses evils markers to select the last yanked text"
        (interactive)
        (evil-goto-mark ?\[)
        (evil-visual-char)
        (evil-goto-mark ?\]))
+
+     ;; (defun evil-yank-and-indent-text ()
+     ;;   (interactive)
+     ;;   (evil-paste-after)
+     ;;   (evil-indent)
+     ;;   (evil-goto-mark ?\[))
+
    #+end_src
-** kj to exit insert mode
-  kj is more convenient then escape for exiting insert mode
-  #+begin_src emacs-lisp
-    ;;Define KJ as espace while in insert
-    (define-key evil-insert-state-map "k" #'cofi/maybe-exit)
-
-    (evil-define-command cofi/maybe-exit ()
-      :repeat change
-      (interactive)
-      (let ((modified (buffer-modified-p)))
-        (insert "k")
-        (let ((evt (read-event (format "Insert %c to exit insert state" ?j)
-                               nil 0.5)))
-          (cond
-           ((null evt) (message ""))
-           ((and (integerp evt) (char-equal evt ?j))
-            (delete-char -1)
-            (set-buffer-modified-p modified)
-            (push 'escape unread-command-events))
-           (t (setq unread-command-events (append unread-command-events
-                                                  (list evt))))))))
-  #+end_src
-
 ** Escape should exit things
   Stole this from somewhere, attempts to map escape to various
   exits. It isn't perfect however, and I still need ctrl g from time
@@ -518,12 +525,21 @@
   (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
   (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
   (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+  (define-key mc/keymap [escape] 'mc/keyboard-quit)
   (global-set-key [escape] 'evil-exit-emacs-state)
 #+end_src
 
-*** TODO Make escape work consitently
-    Escape fails in Helm, Js2 refactor, and I'm sure other various places
+** Miscellaneous
+#+begin_src emacs-lisp
+  (require 'evil-visualstar)
+  (global-evil-visualstar-mode t)
+#+end_src
 
+
+*** DONE Make escape work consitently
+CLOSED: [2015-02-07 Sat 20:50]
+    Escape fails in Helm, Js2 refactor, and I'm sure other various places
 
 ** Evil vs mutliple-cursors
   Multiple cursors and evil [[https://github.com/magnars/multiple-cursors.el/issues/17][don't play well together]]. I ripped this
@@ -587,3 +603,98 @@
 
     (defvar mc--default-cmds-to-run-once nil)
   #+end_src
+
+* Mutliple Cursors
+#+begin_src emacs-lisp
+  (require 'multiple-cursors)
+  ;; Don't use expand-region fast keys
+  (setq expand-region-fast-keys-enabled nil)
+#+end_src
+
+* Ace Jump
+#+begin_src emacs-lisp
+  (setq ace-jump-mode-scope 'frame)
+  (setq ace-jump-mode-move-keys
+        (loop for i from ?a to ?z collect i))
+
+  (require 'ace-jump-mode)
+  (defun evil-ace-jump-two-chars-mode (query-char query-char-2)
+    "evil AceJump two chars mode"
+    (interactive (list (read-char "First Char:")
+                       (read-char "Second:")))
+
+    (if (eq (ace-jump-char-category query-char) 'other)
+      (error "[AceJump] Non-printable character"))
+
+    ;; others : digit , alpha, punc
+    (setq ace-jump-query-char query-char)
+    (setq ace-jump-current-mode 'evil-ace-jump-char-mode)
+    (ace-jump-do (regexp-quote (concat (char-to-string query-char)
+                                       (char-to-string query-char-2)))))
+#+end_src
+
+* DONE helm swoop
+CLOSED: [2015-02-11 Wed 14:05]
+#+begin_src emacs-lisp
+  (use-package helm-swoop
+    :load-path "~/.emacs.d/vendor/helm-swoop"
+    :config
+    (setq
+     helm-swoop-pre-input-function (lambda () "empty unless in visual mode"
+                                     (if (evil-visual-state-p)
+                                         (thing-at-point 'symbol)
+                                       ""))
+     helm-swoop-speed-or-color t)
+    (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
+    (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+    (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
+#+end_src
+
+* wgrep-ag
+#+begin_src emacs-lisp
+  (use-package wgrep
+    :load-path "~/.emacs.d/vendor/Emacs-wgrep"
+    :config
+    (progn
+      (use-package wgrep-helm)
+      (use-package wgrep-ack)
+      ;; (use-package wgrep-ag)
+
+      ;; (use-package helm-ag
+      ;;   :ensure t
+      ;;   :load-path "~/.emacs.d/vendor/emacs-helm-ag"
+      ;;   :config
+      ;;   (define-key helm-ag-map (kbd "C-c C-s") 'helm-grep-save-results))
+      ;; )
+      ))
+
+#+end_src
+
+* Drag Stuff
+#+begin_src emacs-lisp
+  (use-package drag-stuff
+      :load-path "~/.emacs.d/vendor/drag-stuff.el"
+      :bind
+      (("C-S-j" . drag-stuff-down)
+       ("C-S-k" . drag-stuff-up))
+      :config
+      (drag-stuff-mode t))
+#+end_src
+** TODO Evil compatibility improvements
+- [ ] visual line mode is broken.
+- [ ] being able to move rectangular regions would be nice
+
+* TODO Refactor emacs configuration
+- [ ] use, use-package, for more cohesion.
+- [ ] transition away from prelude
+
+
+* TODO Bring in node REPL mode from chromebook
+- [ ] configure for es6 with 6to5
+- [ ] Clean up implementation
+- [ ] pull from chromebook into master
+* TODO Find a way to highlight all occurrences of variable
+- Do it with js2 AST http://mihai.bazon.net/projects/editing-javascript-with-emacs-js2-mode/js2-highlight-vars-mode
+
+* TODO Fix copy and paste between emacs and clipboard
+Probably evil related, since being in insert mode when doing the copy seems to work.
