@@ -2,12 +2,11 @@
 # name: blog
 # key: blog
 # --
-#+STARTUP: showall indent
-#+options: num:nil
 #+BEGIN_HTML
 ---
 title: ${1:`(s-titleize (file-name-nondirectory (file-name-sans-extension(buffer-file-name))))`}
 date: ${2:`(insert (s-trim (shell-command-to-string "todays-date")))`}
 ---
 #+END_HTML
+#+FILETAGS: :blog:
 $0
