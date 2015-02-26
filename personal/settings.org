@@ -413,7 +413,7 @@ when the language name doesn't match exactly
      (add-to-list 'org-src-lang-modes '("js" . js2))
 #+end_src
 ** org-agenda
-#+begin_src emacs-lisp
+   #+begin_src emacs-lisp
   (defun update-org-agenda-files ()
     (interactive)
     (let*
@@ -458,9 +458,9 @@ when the language name doesn't match exactly
 
   (update-org-agenda-files)
 
-#+end_src
+   #+end_src
 
-#+begin_src emacs-lisp
+   #+begin_src emacs-lisp
   (use-package org-agenda
     :bind ("C-c a" . org-agenda)
     :config
@@ -470,9 +470,9 @@ when the language name doesn't match exactly
       (define-key org-agenda-mode-map "k" 'org-agenda-previous-line)
       ;; (setq org-agenda-start-with-follow-mode t)
       ))
-#+end_src
+   #+end_src
 
-#+begin_src emacs-lisp
+   #+begin_src emacs-lisp
   (use-package org-capture
     :config
     (progn
@@ -505,7 +505,8 @@ when the language name doesn't match exactly
         (newline))))
 
   (defun bear-org-project-jump ()
-    "Jumps to the projects org file"
+    "Jumps to the projects org file (dominating file named readme.org or
+  todo.org in)"
     (interactive)
     (let* ((dir (file-name-directory (buffer-file-name)))
            (match "^\\([rR][eE][aA][dD][mM][dE]\\|[tT][oO][dD][oO]\\)\\.[oO][rR][gG]$")
@@ -523,24 +524,33 @@ when the language name doesn't match exactly
       (progn
         (bear-org-project-jump)
         (bear-org-jump-to-tasks))))
-  ;; (add-hook 'org-clock-in-prepare-hook
-  ;;           'my-org-mode-ask-effort)
-
-  ;; (defun my-org-mode-ask-effort ()
-  ;;   "Ask for an effort estimate when clocking in."
-  ;;   (unless (org-entry-get (point) "Effort")
-  ;;     (let ((effort
-  ;;            (completing-read
-  ;;             "Effort: "
-  ;;             (org-entry-get-multivalued-property (point) "Effort"))))
-  ;;       (unless (equal effort "")
-  ;;         (org-set-property "Effort" effort)))))
-#+end_src
+   #+end_src
 
 ** time-tracking
    #+begin_src emacs-lisp
      (setq org-clock-persist 'history)
      (org-clock-persistence-insinuate)
+
+     (use-package org-clock
+       :config
+       (progn
+         (map-n-v-evil-states " oki" 'org-clock-in)
+         (map-n-v-evil-states " oko" 'org-clock-out)
+         (map-n-v-evil-states " okx" 'org-clock-in-last)
+         (map-n-v-evil-states " oke" 'org-clock-out)
+         (add-hook 'org-clock-in-prepare-hook
+                   'my-org-mode-ask-effort)
+
+         (defun my-org-mode-ask-effort ()
+           "Ask for an effort estimate when clocking in."
+           (unless (org-entry-get (point) "Effort")
+             (let ((effort
+                    (completing-read
+                     "Effort: "
+                     (org-entry-get-multivalued-property (point) "Effort"))))
+               (unless (equal effort "")
+                 (org-set-property "Effort" effort)))))
+         ))
 
    #+end_src
 
