@@ -1,5 +1,3 @@
-#+STARTUP: showall indent
-#+options: num:nil
 #+BEGIN_HTML
 ---
 title: Emacs Configuration
@@ -8,7 +6,7 @@ draft: false
 tags : [linux]
 ---
 #+END_HTML
-
+#+FILETAGS: :computer:
 #+TITLE: Emacs Configuration
 
 * About
@@ -61,14 +59,26 @@ Set my name and email
         expand-region
         evil-nerd-commenter
         js2-refactor
-        key-chord
-        helm-swoop))
+        key-chord))
    #+end_src
 
 ** Backups
     store backups in one folder instead next to the file
     #+begin_src emacs-lisp
       (setq backup-directory-alist `(("." . "~/.emacs.d/.backups")))
+
+      (setq make-backup-files t               ; backup of a file the first time it is saved.
+            backup-by-copying t               ; don't clobber symlinks
+            version-control t                 ; version numbers for backup files
+            delete-old-versions t             ; delete excess backup files silently
+            delete-by-moving-to-trash t
+            kept-old-versions 6               ; oldest versions to keep when a new numbered backup is made (default: 2)
+            kept-new-versions 9               ; newest versions to keep when a new numbered backup is made (default: 2)
+            auto-save-default t               ; auto-save every buffer that visits a file
+            auto-save-timeout 20              ; number of seconds idle time before auto-save (default: 30)
+            auto-save-interval 200            ; number of keystrokes between auto-saves (default: 300)
+            )
+
     #+end_src
 
 ** Save Place
@@ -123,11 +133,28 @@ Set my name and email
     (powerline-evil-vim-color-theme)
    #+end_src
 
-*** TODO make margins dynamic
+*** TODO [#C] make margins dynamic
     currently we have static margins, it'd be nice to allow things to look
     centered when there's plenty of room (fullscreen)
 
+** Configuration helpers
+   #+begin_src emacs-lisp
+     ;;Unmap prelude evils ace jump
+     (define-key evil-normal-state-map (kbd "SPC") nil)
 
+     (defun map-all-evil-states (keys action)
+       "maps key combination to action for all evil modes"
+       (define-key evil-normal-state-map keys action)
+       (define-key evil-insert-state-map keys action)
+       (define-key evil-visual-state-map keys action))
+     (defun map-n-v-evil-states (keys action)
+       (define-key evil-normal-state-map keys action)
+       (define-key evil-visual-state-map keys action))
+
+     (defun map-n-i-evil-states (keys action)
+       (define-key evil-normal-state-map keys action)
+       (define-key evil-insert-state-map keys action))
+   #+end_src
 * Javascript
 ** js2 refactor
   set js refactors prefix
@@ -205,6 +232,25 @@ Set my name and email
          (t (error "not within a test or lib directory"))
       )))
   #+end_src
+
+** align declarations
+Aligning require statements at the top, or variable literal assignments
+is something that can make code more readable, but its too painful to do
+manually all the time. This seeks out '=' or ':' in lines, and aligns them.
+
+#+begin_src emacs-lisp
+  (defun js-align-assignments (&optional NUM)
+    (interactive "p")
+    ;;Keep them separate align calls, otherwise colons align with spaces
+    ;;if they're in the same region
+    (align-regexp (region-beginning) (region-end) "\\(\\s-*\\)=")
+    (align-regexp (region-beginning) (region-end) "\\(\\s-*\\):"))
+
+  (evil-define-key `normal js2-mode-map (kbd "SPC \\") 'js-align-assignments)
+  (evil-define-key `visual js2-mode-map (kbd "SPC \\") 'js-align-assignments)
+
+#+end_src
+
 
 
 
@@ -295,7 +341,7 @@ Set my name and email
 
    #+end_src
 
-*** TODO make tab binding / completion a minor mode
+*** TODO [#C] make tab binding / completion a minor mode
 
 * Custom Commands
 ** create-new-empty-buffer
@@ -345,47 +391,174 @@ Set my name and email
 
 * Org-mode
 ** org-babel
-   language definitions for org babel
-   #+begin_src emacs-lisp
+language definitions for org babel
+#+begin_src emacs-lisp
      (org-babel-do-load-languages
       'org-babel-load-languages
       '((js . t)
         (emacs-lisp . t)
         (scala . t)
         (sh . t)))
-   #+end_src
+#+end_src
 
-   open source code blocks in new frames.
-   #+begin_src emacs-lisp
-     (set 'org-src-window-setup 'other-frame)
-   #+end_src
+open source code blocks in new frames.
+#+begin_src emacs-lisp
+  (set 'org-src-window-setup 'current-window)
+#+end_src
 
-   org mode maps the language mode by name, remap to proper modes
-   when the language name doesn't match exactly
-   #+begin_src emacs-lisp
+org mode maps the language mode by name, remap to proper modes
+when the language name doesn't match exactly
+#+begin_src emacs-lisp
      (add-to-list 'org-src-lang-modes '("js" . js2))
+#+end_src
+** org-agenda
+   #+begin_src emacs-lisp
+  (defun update-org-agenda-files ()
+    (interactive)
+    (let*
+        ((entries
+          '("~/notes"))
+         (rec-entries
+          '("~/projects"))
+         (rec-files
+          (mapcan
+           'find-org-file-recursively
+           rec-entries))
+
+         (all-org-files (append entries rec-files)))
+      (setq org-agenda-files all-org-files)))
+
+  (defun find-org-file-filter (name)
+    (not (s-contains? "node_modules" name)))
+
+  ;; recursively find .org files in provided directory
+  ;; modified from an Emacs Lisp Intro example
+  (defun find-org-file-recursively (directory &optional filext)
+    "Return .org and .org_archive files recursively from DIRECTORY.
+  If FILEXT is provided, return files with extension FILEXT instead."
+    ;; FIXME: interactively prompting for directory and file extension
+    (let* (org-file-list
+           (case-fold-search t)           ; filesystems are case sensitive
+           (file-name-regex "^[^.#].*")   ; exclude .*
+           (filext (if filext filext "org$\\\|org_archive"))
+           (fileregex (format "%s\\.\\(%s$\\)" file-name-regex filext))
+           (cur-dir-list (directory-files directory t file-name-regex)))
+      ;; loop over directory listing
+      (dolist (file-or-dir cur-dir-list org-file-list) ; returns org-file-list
+        (cond
+         ((file-regular-p file-or-dir) ; regular files
+          (if (string-match fileregex file-or-dir) ; org files
+              (add-to-list 'org-file-list file-or-dir)))
+         ((file-directory-p file-or-dir)
+          (if (find-org-file-filter file-or-dir)
+              (dolist (org-file (find-org-file-recursively file-or-dir filext)
+                                org-file-list) ; add files found to result
+                (add-to-list 'org-file-list org-file))))))))
+
+  (update-org-agenda-files)
+
+   #+end_src
+
+   #+begin_src emacs-lisp
+  (use-package org-agenda
+    :bind ("C-c a" . org-agenda)
+    :config
+    (progn
+      ;;we dont use evil in agenda, but j/k should be vim style
+      (define-key org-agenda-mode-map "j" 'org-agenda-next-line)
+      (define-key org-agenda-mode-map "k" 'org-agenda-previous-line)
+      ;; (setq org-agenda-start-with-follow-mode t)
+      ))
+   #+end_src
+
+   #+begin_src emacs-lisp
+  (use-package org-capture
+    :config
+    (progn
+      (setq org-capture-templates
+            '(("t" "Todo" entry (file+headline "~/notes/tasks.org" "Tasks")
+               "* TODO %?\n  %i\n  %a")
+              ("p" "Project Todo" entry (function bear-org-project-jump-to-tasks)
+               "* TODO %?\n  %i\n  %a")
+              ("j" "Journal" entry (file+datetree "~/notes/journal.org")
+               "* %?\nEntered on %U\n  %i\n  %a")))
+
+      (map-n-v-evil-states " oc" 'org-capture)
+      ;; (map-n-v-evil-states " ot" (lambda() (interactive) (org-capture nil "t")))
+      ;; (map-n-v-evil-states " oj" (lambda() (interactive) (org-capture nil "j")))
+      ))
+
+  (defun bear-org-jump-to-tasks()
+    "Jumps to the tasks within the current org file. If no task section
+  exists, one is created"
+    (interactive)
+    (goto-char (point-min))
+    (unless
+        (re-search-forward
+         "^[[:space:]]*\\*.[[:space:]]*\\(tasks\\|planned\\|todos\\)[[:space:]]*"
+         nil t)
+      (progn
+        (goto-char (point-max))
+        (newline)
+        (insert "* Tasks")
+        (newline))))
+
+  (defun bear-org-project-jump ()
+    "Jumps to the projects org file (dominating file named readme.org or
+  todo.org in)"
+    (interactive)
+    (let* ((dir (file-name-directory (buffer-file-name)))
+           (match "^\\([rR][eE][aA][dD][mM][dE]\\|[tT][oO][dD][oO]\\)\\.[oO][rR][gG]$")
+           (get-matched (lambda(parent) (car (directory-files parent nil match))))
+           (matched-dir (locate-dominating-file dir get-matched))
+           (matched-file (funcall get-matched matched-dir)))
+      (find-file (concat matched-dir matched-file))))
+
+
+  (defun bear-org-project-jump-to-tasks ()
+    "Finds the org file and location associated with project tasks, and jumps to it"
+    (interactive)
+    (if (string= (file-name-extension (buffer-file-name)) "org")
+        (bear-org-jump-to-tasks)
+      (progn
+        (bear-org-project-jump)
+        (bear-org-jump-to-tasks))))
+   #+end_src
+
+** time-tracking
+   #+begin_src emacs-lisp
+     (setq org-clock-persist 'history)
+     (org-clock-persistence-insinuate)
+
+     (use-package org-clock
+       :config
+       (progn
+         (map-n-v-evil-states " oki" 'org-clock-in)
+         (map-n-v-evil-states " oko" 'org-clock-out)
+         (map-n-v-evil-states " okx" 'org-clock-in-last)
+         (map-n-v-evil-states " oke" 'org-clock-out)
+         (add-hook 'org-clock-in-prepare-hook
+                   'my-org-mode-ask-effort)
+
+         (defun my-org-mode-ask-effort ()
+           "Ask for an effort estimate when clocking in."
+           (unless (org-entry-get (point) "Effort")
+             (let ((effort
+                    (completing-read
+                     "Effort: "
+                     (org-entry-get-multivalued-property (point) "Effort"))))
+               (unless (equal effort "")
+                 (org-set-property "Effort" effort)))))
+         ))
+
    #+end_src
 
 
 * Key Bindings
 
   #+begin_src emacs-lisp
-    ;;Unmap prelude evils ace jump
-    (define-key evil-normal-state-map (kbd "SPC") nil)
     ;;remove forward motion from evil motion ma
     (define-key evil-motion-state-map " " nil)
-    (defun map-all-evil-states (keys action)
-      "maps key combination to action for all evil modes"
-      (define-key evil-normal-state-map keys action)
-      (define-key evil-insert-state-map keys action)
-      (define-key evil-visual-state-map keys action))
-    (defun map-n-v-evil-states (keys action)
-      (define-key evil-normal-state-map keys action)
-      (define-key evil-visual-state-map keys action))
-
-    (defun map-n-i-evil-states (keys action)
-      (define-key evil-normal-state-map keys action)
-      (define-key evil-insert-state-map keys action))
 
     (define-key evil-normal-state-map (kbd "g t") 'js-jump-to-implementation-or-test)
 
@@ -421,7 +594,6 @@ Set my name and email
     (global-set-key (kbd "C-S-SPC") 'er/contract-region)
     (global-set-key (kbd "C-SPC") 'er/expand-region)
 
-
     (map-n-v-evil-states (kbd "SPC j") 'evil-ace-jump-two-chars-mode)
     (map-n-v-evil-states (kbd "SPC r") 'js2r-rename-var)
     (map-n-v-evil-states (kbd "SPC l") 'js2r-log-this)
@@ -433,14 +605,17 @@ Set my name and email
 
     (define-key evil-normal-state-map (kbd "gp") 'evil-select-last-yanked-text)
 
+    (setq evil-default-state `normal)
     (evil-define-key `normal org-src-mode-map (kbd "SPC '") 'org-edit-src-save-and-exit)
+    (evil-define-key `normal org-src-mode-map (kbd "SPC s") 'org-edit-src-save)
+    (define-key org-src-mode-map (kbd "C-s") 'org-edit-src-save)
     (evil-define-key `normal org-mode-map (kbd "SPC '") 'org-edit-special)
+
 
     (defun org-edit-src-save-and-exit()
       (interactive)
       (org-edit-src-save)
       (org-edit-src-exit 'exit))
-
 
     ;; (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
     (global-set-key (kbd "C-S-i") 'helm-projectile-ack)
@@ -468,7 +643,7 @@ Set my name and email
 
   #+end_src
 
-** TODO Clean up keyboard shortcuts
+** TODO [#C] Clean up keyboard shortcuts
 - More consistency is needed, think about appropriate prefixes.
 - Ctrl p is a poor project launching shortcut (too many
   applications use it for 'previous'
@@ -669,7 +844,7 @@ CLOSED: [2015-02-11 Wed 14:05]
       ))
 
 #+end_src
-
+#
 * Drag Stuff
 #+begin_src emacs-lisp
   (use-package drag-stuff
@@ -680,21 +855,21 @@ CLOSED: [2015-02-11 Wed 14:05]
       :config
       (drag-stuff-mode t))
 #+end_src
-** TODO Evil compatibility improvements
+** TODO [#C] Evil compatibility improvements
 - [ ] visual line mode is broken.
 - [ ] being able to move rectangular regions would be nice
 
-* TODO Refactor emacs configuration
+* Tasks
+** TODO Refactor emacs configuration
 - [ ] use, use-package, for more cohesion.
 - [ ] transition away from prelude
 
-
-* TODO Bring in node REPL mode from chromebook
+** TODO [#C] Bring in node REPL mode from chromebook
 - [ ] configure for es6 with 6to5
 - [ ] Clean up implementation
 - [ ] pull from chromebook into master
-* TODO Find a way to highlight all occurrences of variable
+** TODO [#C] Find a way to highlight all occurrences of variable
 - Do it with js2 AST http://mihai.bazon.net/projects/editing-javascript-with-emacs-js2-mode/js2-highlight-vars-mode
 
-* TODO Fix copy and paste between emacs and clipboard
+** TODO [#C] Fix copy and paste between emacs and clipboard
 Probably evil related, since being in insert mode when doing the copy seems to work.

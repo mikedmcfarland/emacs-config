@@ -21,5 +21,6 @@ session*
 .cask
 tramp
 /var/pcache
-
 /personal/settings.el
+org-clock-save.el
+.mc-lists.el
