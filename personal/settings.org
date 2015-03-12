@@ -390,6 +390,12 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 
 
 * Org-mode
+** Misc
+Automatically put us into org-indent-mode when editing org files
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook 'org-indent-mode)
+#+end_src
+
 ** org-babel
 language definitions for org babel
 #+begin_src emacs-lisp
@@ -472,57 +478,61 @@ when the language name doesn't match exactly
    #+end_src
 
    #+begin_src emacs-lisp
-  (use-package org-capture
-    :config
-    (progn
-      (setq org-capture-templates
-            '(("t" "Todo" entry (file+headline "~/notes/tasks.org" "Tasks")
-               "* TODO %?\n  %i\n  %a")
-              ("p" "Project Todo" entry (function bear-org-project-jump-to-tasks)
-               "* TODO %?\n  %i\n  %a")
-              ("j" "Journal" entry (file+datetree "~/notes/journal.org")
-               "* %?\nEntered on %U\n  %i\n  %a")))
+     (use-package org-capture
+       :config
+       (progn
+         (setq org-capture-templates
+               '(
+                 ("t" "Todo" entry (file+headline "~/notes/tasks.org" "Tasks")
+                  "* TODO %?\n  %i\n  %a")
+                 ("e" "Emacs Todo" entry (file+headline "~/.emacs.d/personal/settings.org" "Tasks")
+                  "* TODO %?\n  %i\n  %a")
+                 ("p" "Project Todo" entry (function bear-org-project-jump-to-tasks)
+                  "* TODO %?\n  %i\n  %a")
+                 ("j" "Journal" entry (file+datetree "~/notes/journal.org")
+                  "* %?\nEntered on %U\n  %i\n  %a")))
 
-      (map-n-v-evil-states " oc" 'org-capture)
-      ;; (map-n-v-evil-states " ot" (lambda() (interactive) (org-capture nil "t")))
-      ;; (map-n-v-evil-states " oj" (lambda() (interactive) (org-capture nil "j")))
-      ))
-
-  (defun bear-org-jump-to-tasks()
-    "Jumps to the tasks within the current org file. If no task section
-  exists, one is created"
-    (interactive)
-    (goto-char (point-min))
-    (unless
-        (re-search-forward
-         "^[[:space:]]*\\*.[[:space:]]*\\(tasks\\|planned\\|todos\\)[[:space:]]*"
-         nil t)
-      (progn
-        (goto-char (point-max))
-        (newline)
-        (insert "* Tasks")
-        (newline))))
-
-  (defun bear-org-project-jump ()
-    "Jumps to the projects org file (dominating file named readme.org or
-  todo.org in)"
-    (interactive)
-    (let* ((dir (file-name-directory (buffer-file-name)))
-           (match "^\\([rR][eE][aA][dD][mM][dE]\\|[tT][oO][dD][oO]\\)\\.[oO][rR][gG]$")
-           (get-matched (lambda(parent) (car (directory-files parent nil match))))
-           (matched-dir (locate-dominating-file dir get-matched))
-           (matched-file (funcall get-matched matched-dir)))
-      (find-file (concat matched-dir matched-file))))
+         (map-n-v-evil-states " oc" 'org-capture)
+         ;; (map-n-v-evil-states " ot" (lambda() (interactive) (org-capture nil "t")))
+         ;; (map-n-v-evil-states " oj" (lambda() (interactive) (org-capture nil "j")))
+         ))
 
 
-  (defun bear-org-project-jump-to-tasks ()
-    "Finds the org file and location associated with project tasks, and jumps to it"
-    (interactive)
-    (if (string= (file-name-extension (buffer-file-name)) "org")
-        (bear-org-jump-to-tasks)
-      (progn
-        (bear-org-project-jump)
-        (bear-org-jump-to-tasks))))
+     (defun bear-org-jump-to-tasks()
+       "Jumps to the tasks within the current org file. If no task section
+     exists, one is created"
+       (interactive)
+       (goto-char (point-min))
+       (unless
+           (re-search-forward
+            "^[[:space:]]*\\*.[[:space:]]*\\(tasks\\|planned\\|todos\\)[[:space:]]*"
+            nil t)
+         (progn
+           (goto-char (point-max))
+           (newline)
+           (insert "* Tasks")
+           (newline))))
+
+     (defun bear-org-project-jump ()
+       "Jumps to the projects org file (dominating file named readme.org or
+     todo.org in)"
+       (interactive)
+       (let* ((dir (file-name-directory (buffer-file-name)))
+              (match "^\\([rR][eE][aA][dD][mM][dE]\\|[tT][oO][dD][oO]\\)\\.[oO][rR][gG]$")
+              (get-matched (lambda(parent) (car (directory-files parent nil match))))
+              (matched-dir (locate-dominating-file dir get-matched))
+              (matched-file (funcall get-matched matched-dir)))
+         (find-file (concat matched-dir matched-file))))
+
+
+     (defun bear-org-project-jump-to-tasks ()
+       "Finds the org file and location associated with project tasks, and jumps to it"
+       (interactive)
+       (if (string= (file-name-extension (buffer-file-name)) "org")
+           (bear-org-jump-to-tasks)
+         (progn
+           (bear-org-project-jump)
+           (bear-org-jump-to-tasks))))
    #+end_src
 
 ** time-tracking

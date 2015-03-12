@@ -2,9 +2,6 @@
 # name: img
 # key: img
 # --
-<img src="$1"
- alt="$2" align="${3:left}"
- title="${4:image title}"
- class="img"
-</img>
-$0
+#+CAPTION: ${1:caption}
+#+NAME: ${2:name}
+[[${3:path}]]
