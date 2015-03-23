@@ -107,12 +107,6 @@ Set my name and email
      (add-to-list 'default-frame-alist '(font .   "Source Code Pro 12" ))
    #+end_src
 
-   Add linenumbers
-   #+begin_src emacs-lisp
-     (setq linum-format "%3d ")
-     (add-hook 'prog-mode-hook 'linum-mode)
-   #+end_src
-
 
    A few miscallaneious things
    #+begin_src emacs-lisp
@@ -138,6 +132,7 @@ Set my name and email
     centered when there's plenty of room (fullscreen)
 
 ** Configuration helpers
+I map evil shortcuts allot, these are those mappings shorter.
    #+begin_src emacs-lisp
      ;;Unmap prelude evils ace jump
      (define-key evil-normal-state-map (kbd "SPC") nil)
@@ -255,8 +250,6 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 
 
 * Jade
-  jade-mode didn't install, so I've added it into vendor as a submodule
-  and am initializing it manually
   #+begin_src emacs-lisp
     (use-package jade-mode
       :load-path "~/.emacs.d/vendor/jade-mode"
@@ -272,6 +265,12 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
   #+end_src
 
 
+* dot diagrams
+#+begin_src emacs-lisp
+  (use-package graphviz-dot-mode
+    :load-path "~/.emacs.d/vendor/graphviz-dot-mode"
+    :mode "\\.dot$")
+#+end_src
 
 * Snippets And Autocompletion
 ** Yasnippet
@@ -388,7 +387,6 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
     #+end_src
 
 
-
 * Org-mode
 ** Misc
 Automatically put us into org-indent-mode when editing org files
@@ -399,12 +397,14 @@ Automatically put us into org-indent-mode when editing org files
 ** org-babel
 language definitions for org babel
 #+begin_src emacs-lisp
-     (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((js . t)
-        (emacs-lisp . t)
-        (scala . t)
-        (sh . t)))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((js . t)
+     (emacs-lisp . t)
+     (scala . t)
+     (sh . t)
+     (dot . t)
+     ))
 #+end_src
 
 open source code blocks in new frames.
@@ -415,9 +415,28 @@ open source code blocks in new frames.
 org mode maps the language mode by name, remap to proper modes
 when the language name doesn't match exactly
 #+begin_src emacs-lisp
-     (add-to-list 'org-src-lang-modes '("js" . js2))
+  (add-to-list 'org-src-lang-modes '("js" . js2))
+  (add-to-list 'org-src-lang-modes '("dot" . graphviz-dot))
 #+end_src
+
+lets use babel-node instead of node (for es6 features).
+This needs babel installed globally to work.
+#+begin_src emacs-lisp
+  (setq org-babel-js-cmd "babel-node")
+#+end_src
+
+use relative file links when tangling/detangling
+#+begin_src emacs-lisp
+  (setq org-babel-tangle-use-relative-file-links t)
+#+end_src
+
+
 ** org-agenda
+
+Pull in all org files for my agenda from:
+- my ~/notes directory
+- recursively through my ~/projects
+
    #+begin_src emacs-lisp
   (defun update-org-agenda-files ()
     (interactive)
@@ -465,6 +484,9 @@ when the language name doesn't match exactly
 
    #+end_src
 
+
+
+Configure shortcuts and settings for org agenda
    #+begin_src emacs-lisp
   (use-package org-agenda
     :bind ("C-c a" . org-agenda)
@@ -477,6 +499,8 @@ when the language name doesn't match exactly
       ))
    #+end_src
 
+** Org capture
+Set up capture templates and shortcuts.
    #+begin_src emacs-lisp
      (use-package org-capture
        :config
@@ -493,11 +517,13 @@ when the language name doesn't match exactly
                   "* %?\nEntered on %U\n  %i\n  %a")))
 
          (map-n-v-evil-states " oc" 'org-capture)
-         ;; (map-n-v-evil-states " ot" (lambda() (interactive) (org-capture nil "t")))
-         ;; (map-n-v-evil-states " oj" (lambda() (interactive) (org-capture nil "j")))
          ))
+   #+end_src
 
+These functions allow the project template to work.
+They add tasks to the appropriate org file (and section) based on the current project.
 
+   #+begin_src emacs-lisp
      (defun bear-org-jump-to-tasks()
        "Jumps to the tasks within the current org file. If no task section
      exists, one is created"
@@ -535,7 +561,8 @@ when the language name doesn't match exactly
            (bear-org-jump-to-tasks))))
    #+end_src
 
-** time-tracking
+** Org-clock (time-tracking)
+set up org clocking shortcuts and settings
    #+begin_src emacs-lisp
      (setq org-clock-persist 'history)
      (org-clock-persistence-insinuate)
@@ -565,7 +592,7 @@ when the language name doesn't match exactly
 
 
 * Key Bindings
-
+A bunch of keybindings that really should be put into appropriate sections.
   #+begin_src emacs-lisp
     ;;remove forward motion from evil motion ma
     (define-key evil-motion-state-map " " nil)
@@ -634,7 +661,7 @@ when the language name doesn't match exactly
     ;; (require 'helm-swoop)
     ;; (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
 
-    (map-n-v-evil-states (kbd "go") 'view-file-other-frame)
+    (map-n-v-evil-states (kbd "go") 'find-file-other-frame)
     (define-key company-active-map (kbd "C-n") 'company-select-next-or-abort)
     (define-key company-active-map (kbd "C-p") 'company-select-previous-or-abort)
 
@@ -716,22 +743,20 @@ kj is a convenient exit compared to escape
 #+end_src
 
 ** Miscellaneous
+Evil star allows you to use the * shortcut on visually selected text.
+Should be default vim behavior if you ask me.
 #+begin_src emacs-lisp
   (require 'evil-visualstar)
   (global-evil-visualstar-mode t)
 #+end_src
 
 
-*** DONE Make escape work consitently
-CLOSED: [2015-02-07 Sat 20:50]
-    Escape fails in Helm, Js2 refactor, and I'm sure other various places
-
 ** Evil vs mutliple-cursors
-  Multiple cursors and evil [[https://github.com/magnars/multiple-cursors.el/issues/17][don't play well together]]. I ripped this
-  solution from [[https://github.com/jcpetkovich/.emacs.d][these configs]]. It disables evil while multiple-cursors
-  is running. I don't really use multiple cursors, since not being
-  able to use evil creates dissonance; But js2-refactor does. This
-  allows js2-refactor to still work nicely for me.
+Multiple cursors and evil [[https://github.com/magnars/multiple-cursors.el/issues/17][don't play well together]]. I ripped this
+solution from [[https://github.com/jcpetkovich/.emacs.d][these configs]]. It disables evil while multiple-cursors
+is running. This allows js2-refactor to still work nicely for me.
+I can still use multiple cursors too, but it's less awesome without
+vim keybindings.
 
   #+begin_src emacs-lisp
     (defun user-utils/evil-visual-or-normal-p ()
@@ -789,7 +814,9 @@ CLOSED: [2015-02-07 Sat 20:50]
     (defvar mc--default-cmds-to-run-once nil)
   #+end_src
 
-* Mutliple Cursors
+* Multiple Cursors
+mc's fast key expansion was getting in the way of my other shortcuts.
+So Disable it.
 #+begin_src emacs-lisp
   (require 'multiple-cursors)
   ;; Don't use expand-region fast keys
@@ -797,6 +824,8 @@ CLOSED: [2015-02-07 Sat 20:50]
 #+end_src
 
 * Ace Jump
+I thought i'd use this, I really don't.
+It's cool but less functional then I expected (for my workflow)
 #+begin_src emacs-lisp
   (setq ace-jump-mode-scope 'frame)
   (setq ace-jump-mode-move-keys
@@ -819,6 +848,7 @@ CLOSED: [2015-02-07 Sat 20:50]
 #+end_src
 
 * DONE helm swoop
+helm swoop config and shortcuts. I use this mainly for current buffer searches.
 CLOSED: [2015-02-11 Wed 14:05]
 #+begin_src emacs-lisp
   (use-package helm-swoop
@@ -836,6 +866,7 @@ CLOSED: [2015-02-11 Wed 14:05]
 #+end_src
 
 * wgrep-ag
+Still playing with this. Haven't used it enough times to figure out how it /should/ be.
 #+begin_src emacs-lisp
   (use-package wgrep
     :load-path "~/.emacs.d/vendor/Emacs-wgrep"
@@ -856,6 +887,7 @@ CLOSED: [2015-02-11 Wed 14:05]
 #+end_src
 #
 * Drag Stuff
+Useful to drag lines up and down.
 #+begin_src emacs-lisp
   (use-package drag-stuff
       :load-path "~/.emacs.d/vendor/drag-stuff.el"
@@ -868,6 +900,145 @@ CLOSED: [2015-02-11 Wed 14:05]
 ** TODO [#C] Evil compatibility improvements
 - [ ] visual line mode is broken.
 - [ ] being able to move rectangular regions would be nice
+
+* Erc
+I use erc for chatting with bitlbee. Still getting the hang of it.
+#+begin_src emacs-lisp
+  (setq erc-auto-query 'frame
+        erc-query-display 'frame
+
+        erc-interpret-mirc-color t
+
+        erc-hide-list '("JOIN" "PART" "QUIT")
+
+        erc-kill-buffer-on-part t
+        erc-kill-queries-on-quit t
+        erc-kill-server-buffer-on-quit t)
+
+
+  (evil-define-key `normal erc-mode-map (kbd "RET") 'erc-send-current-line)
+  (evil-define-key `visual erc-mode-map (kbd "RET") 'erc-send-current-line)
+
+#+end_src
+
+Automatically put us into flyspell-mode when using erc
+#+begin_src emacs-lisp
+  (add-hook 'erc-mode-hook 'flyspell-mode)
+#+end_src
+
+* Aggressive indent
+#+begin_src emacs-lisp
+  (use-package aggressive-indent
+    :ensure t
+    :config
+    (progn
+      (global-aggressive-indent-mode t)
+      ))
+#+end_src
+
+* Relative line numbers
+Some customizations that allow relative line numbers to be described as
+alternating letters. This way I can jump to those lines via shortcut. This
+has replace ace-jump-line for me since I don't have to wait for feedback.
+
+#+begin_src emacs-lisp
+  (use-package stripe-buffer
+    :load-path "~/.emacs.d/vendor/stripe-buffer"
+    :config
+    (progn
+      (add-hook 'prog-mode-hook 'stripe-buffer-mode)
+      (add-hook 'org-mode-hook 'stripe-buffer-mode)
+      ))
+
+
+  (use-package relative-line-numbers
+    :ensure
+    :config
+    (progn
+      (defun relative-jump-chars-list ()
+        (list
+         ?f ?d ?s ?a ?v
+         ?t ?b ?c ?e ?g
+         ?u ?h ?i ?y ?j
+         ?k ?l ?m ?n ?o
+         ?p ?q ?r ?w ?x
+         ?z
+         ))
+
+      (defun relative-jump-chars-permutations-default()
+        (cl-mapcar
+         'char-to-string
+         (relative-jump-chars-list)
+         ))
+
+      (defvar relative-jump-chars-permutations
+        (relative-jump-chars-permutations-default))
+      (setq relative-jump-chars-permutations (relative-jump-chars-permutations-default))
+
+      ;; (defun permutations-up-to (size elements)
+      ;;   (if (= size 0)
+      ;;       nil
+      ;;     (append  (permutations-up-to (- size 1) elements) (permutations size elements))
+      ;;     ))
+
+      ;; (defun permutations (size elements)
+      ;;   (if (= size 0)
+      ;;       '(())
+      ;;     (cl-mapcan (lambda (p)
+      ;;                  (cl-mapcar (lambda (e)
+      ;;                               (cons e p))
+      ;;                             elements))
+      ;;                (permutations (- size 1) elements))))
+
+      (defun relative-jump-chars-line-format (offset)
+        (let ((rel (abs offset))
+              (pad 3)
+              (div 2))
+          (cond
+           ((= rel 0)
+            (let ((str (number-to-string (line-number-at-pos))))
+              (if (> 3 (length str))
+                  (concat " " str)
+                str)))
+           ((or
+             (< rel pad)
+             (> (mod rel div) 0)) "")
+           (t (let ((char (nth
+                           (/ (- rel pad) div)
+                           relative-jump-chars-permutations)))
+                (if char
+                    (concat " " char " " )
+                  ""))))))
+
+      (defun relative-jump-chars (char)
+        (let ((pad 3)
+              (div 2)
+              (i (cl-position
+                  (char-to-string char)
+                  relative-jump-chars-permutations
+                  :test 'cl-equalp)))
+          (+
+           (* i div)
+           (+ pad 1))))
+
+      (defun relative-jump-chars-next ()
+        (interactive)
+        (evil-next-visual-line (relative-jump-chars (read-char)) ))
+
+      (defun relative-jump-chars-previous()
+        (interactive)
+        (evil-previous-visual-line (relative-jump-chars (read-char)) ))
+
+      (setq relative-line-numbers-format 'relative-jump-chars-line-format)
+      (setq relative-line-numbers-motion-function 'forward-visible-line)
+      (map-n-v-evil-states " j" 'relative-jump-chars-next)
+      (map-n-v-evil-states " k" 'relative-jump-chars-previous)
+      (add-hook 'prog-mode-hook 'relative-line-numbers-mode)
+      (add-hook 'org-mode-hook 'relative-line-numbers-mode)
+      ))
+
+#+end_src
+
 
 * Tasks
 ** TODO Refactor emacs configuration

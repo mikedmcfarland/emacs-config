@@ -1,0 +1,46 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/mike/.emacs.d/personal/settings.org
+
+
+* DONE Make escape work consitently
+CLOSED: [2015-02-07 Sat 20:50]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2015-03-13 Fri 13:17
+  :ARCHIVE_FILE: ~/.emacs.d/personal/settings.org
+  :ARCHIVE_OLPATH: Evil/Miscellaneous
+  :ARCHIVE_CATEGORY: settings
+  :ARCHIVE_TODO: DONE
+  :ARCHIVE_ITAGS: computer
+  :END:
+    Escape fails in Helm, Js2 refactor, and I'm sure other various places
+
+* DONE Look for static jump to line guides
+CLOSED: [2015-03-22 Sun 22:42]
+:PROPERTIES:
+:ARCHIVE_TIME: 2015-03-22 Sun 22:42
+:ARCHIVE_FILE: ~/.emacs.d/personal/settings.org
+:ARCHIVE_OLPATH: Tasks
+:ARCHIVE_CATEGORY: settings
+:ARCHIVE_TODO: DONE
+:ARCHIVE_ITAGS: computer
+:END:
+you don't really use ace jump. Evils commands work fine for most movements
+But a jump to line would be useful, if the guides for what you can jump to were
+constant (instead of linenumber lets say)
+
+* DONE Try to create relative linums that are easily selected characters for jumping
+CLOSED: [2015-03-22 Sun 22:43]
+:PROPERTIES:
+:ARCHIVE_TIME: 2015-03-22 Sun 22:43
+:ARCHIVE_FILE: ~/.emacs.d/personal/settings.org
+:ARCHIVE_OLPATH: Tasks
+:ARCHIVE_CATEGORY: settings
+:ARCHIVE_TODO: DONE
+:ARCHIVE_ITAGS: computer
+:END:
+Ace jump lines would be useful if it was constantly showing the entire
+key set to jump. Replace linum with something that's useful for line jumping.
+
+  [[file:~/.emacs.d/elpa/linum-relative-20150224.2118/linum-relative.el::(current-p%20(%3D%20diff%20linum-relative-plusp-offset))][file:~/.emacs.d/elpa/linum-relative-20150224.2118/linum-relative.el::(current-p (= diff linum-relative-plusp-offset))]]
