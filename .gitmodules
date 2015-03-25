@@ -22,9 +22,6 @@
 [submodule "vendor/org-mode"]
 	path = vendor/org-mode
 	url = git://orgmode.org/org-mode.git
-[submodule "vendor/aggressive-indent-mode"]
-	path = vendor/aggressive-indent-mode
-	url = https://github.com/Bruce-Connor/aggressive-indent-mode.git
 [submodule "vendor/stripe-buffer"]
 	path = vendor/stripe-buffer
 	url = https://github.com/sabof/stripe-buffer.git
