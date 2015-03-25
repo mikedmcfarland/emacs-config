@@ -59,7 +59,10 @@ Set my name and email
         expand-region
         evil-nerd-commenter
         js2-refactor
-        key-chord))
+        key-chord
+        aggressive-indent
+        ))
+
    #+end_src
 
 ** Backups
@@ -927,13 +930,16 @@ Automatically put us into flyspell-mode when using erc
 #+end_src
 
 * Aggressive indent
+use package isn't working, installed with prelude require instead
 #+begin_src emacs-lisp
-  (use-package aggressive-indent
-    :ensure t
-    :config
-    (progn
-      (global-aggressive-indent-mode t)
-      ))
+  (global-aggressive-indent-mode)
+
+  ;; (use-package aggressive-indent
+  ;;   :ensure names
+  ;;   :config
+  ;;   (progn
+  ;;     (global-aggressive-indent-mode t)
+  ;;     ))
 #+end_src
 
 * Relative line numbers
@@ -948,6 +954,8 @@ has replace ace-jump-line for me since I don't have to wait for feedback.
     (progn
       (add-hook 'prog-mode-hook 'stripe-buffer-mode)
       (add-hook 'org-mode-hook 'stripe-buffer-mode)
+
+      (set-face-background stripe-highlight-face "#2A2B25")
       ))
 
 
@@ -973,7 +981,6 @@ has replace ace-jump-line for me since I don't have to wait for feedback.
 
       (defvar relative-jump-chars-permutations
         (relative-jump-chars-permutations-default))
-      (setq relative-jump-chars-permutations (relative-jump-chars-permutations-default))
 
       ;; (defun permutations-up-to (size elements)
       ;;   (if (= size 0)
