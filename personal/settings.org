@@ -45,7 +45,9 @@ Set my name and email
    and required at startup.
    #+begin_src emacs-lisp
      (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+     (add-to-list 'load-path "~/.emacs.d/vendor/req-package")
      (require 'use-package)
+     (require 'req-package)
 
      (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 
@@ -61,6 +63,7 @@ Set my name and email
         js2-refactor
         key-chord
         aggressive-indent
+        evil-easymotion
         ))
 
    #+end_src
@@ -120,14 +123,22 @@ Set my name and email
            scroll-conservatively 9999
            scroll-step 1)
 
-    (defun set-my-margins()
-      (setq left-margin-width 1)
-      (setq right-margin-width 1))
 
-    (add-hook 'text-mode-hook 'set-my-margins)
-    (add-hook 'prog-mode-hook 'set-my-margins)
+     (defun set-my-margins ()
+       (interactive)
+       (setq left-margin-width 1)
+       ;; (setq right-margin-width 1)
+       (setq left-fringe-width 5)
+       (setq right-fringe-width 10)
+       )
 
-    (powerline-evil-vim-color-theme)
+     (add-hook 'text-mode-hook 'set-my-margins)
+     (add-hook 'prog-mode-hook 'set-my-margins)
+
+     (setq linum-format " %d ")
+     (add-hook 'prog-mode-hook 'linum-mode)
+
+     (powerline-evil-vim-color-theme)
    #+end_src
 
 *** TODO [#C] make margins dynamic
@@ -669,8 +680,17 @@ A bunch of keybindings that really should be put into appropriate sections.
     (define-key company-active-map (kbd "C-p") 'company-select-previous-or-abort)
 
     (define-key js2-mode-map (kbd "C-c C-o") nil)
-    ;; (map-n-i-evil-states (kbd "C-S-k") 'move-text-up)
-    ;; (map-n-i-evil-states (kbd "C-S-j") 'move-text-down)
+
+    (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
+    (define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
+    (define-key evil-insert-state-map (kbd "C-u")
+      (lambda ()
+        (interactive)
+        (evil-delete (point-at-bol) (point))))
+
+    (map-n-i-evil-states (kbd "C-S-k") 'move-text-up)
+    (map-n-i-evil-states (kbd "C-S-j") 'move-text-down)
+
     ;; (evil-define-key `normal js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
     ;; (evil-define-key `insert js2-mode-map (kbd "C-S-k") 'js2r-move-line-up)
     ;; (evil-define-key `normal js2-mode-map (kbd "C-S-j") 'js2r-move-line-down)
@@ -751,6 +771,11 @@ Should be default vim behavior if you ask me.
 #+begin_src emacs-lisp
   (require 'evil-visualstar)
   (global-evil-visualstar-mode t)
+#+end_src
+
+Let motions (like f and F) cross lines.
+#+begin_src emacs-lisp
+  (setq evil-cross-lines t)
 #+end_src
 
 
@@ -841,13 +866,38 @@ It's cool but less functional then I expected (for my workflow)
                        (read-char "Second:")))
 
     (if (eq (ace-jump-char-category query-char) 'other)
-      (error "[AceJump] Non-printable character"))
+        (error "[AceJump] Non-printable character"))
 
     ;; others : digit , alpha, punc
     (setq ace-jump-query-char query-char)
     (setq ace-jump-current-mode 'evil-ace-jump-char-mode)
     (ace-jump-do (regexp-quote (concat (char-to-string query-char)
                                        (char-to-string query-char-2)))))
+
+  (defun point-greater-then (v)
+    (lexical-let ((v v))
+      (lambda ()
+        (> (point) v)))
+    )
+
+  (defun point-less-then (v)
+    (lexical-let ((v v))
+      (lambda ()
+        (< (point) v)))
+    )
+
+  (defun evil-ace-jump-word-mode-backward ()
+    (interactive)
+    (let ((ace-jump-search-filter (point-less-then (point))))
+      (evil-ace-jump-word-mode)))
+
+  (defun evil-ace-jump-word-mode-forward ()
+    (interactive)
+    (let ((ace-jump-search-filter (point-greater-then (point))))
+      (evil-ace-jump-word-mode)))
+
+  (map-n-v-evil-states " j" 'evil-ace-jump-word-mode-forward)
+  (map-n-v-evil-states " k" 'evil-ace-jump-word-mode-backward)
 #+end_src
 
 * DONE helm swoop
@@ -958,10 +1008,19 @@ has replace ace-jump-line for me since I don't have to wait for feedback.
       (set-face-background stripe-highlight-face "#2A2B25")
       ))
 
+  (use-package hl-line
+    :ensure
+    :config
+    (progn
+      (add-hook 'prog-mode-hook 'hl-line-mode)
+      (add-hook 'org-mode-hook 'hl-line-mode)
+      ))
+
 
   (use-package relative-line-numbers
     :ensure
     :config
+    :disabled
     (progn
       (defun relative-jump-chars-list ()
         (list
@@ -1038,14 +1097,34 @@ has replace ace-jump-line for me since I don't have to wait for feedback.
 
       (setq relative-line-numbers-format 'relative-jump-chars-line-format)
       (setq relative-line-numbers-motion-function 'forward-visible-line)
-      (map-n-v-evil-states " j" 'relative-jump-chars-next)
-      (map-n-v-evil-states " k" 'relative-jump-chars-previous)
+      ;; (map-n-v-evil-states " j" 'relative-jump-chars-next)
+      ;; (map-n-v-evil-states " k" 'relative-jump-chars-previous)
+
       (add-hook 'prog-mode-hook 'relative-line-numbers-mode)
       (add-hook 'org-mode-hook 'relative-line-numbers-mode)
       ))
 
 #+end_src
 
+* Git Gutter Fringe
+#+begin_src emacs-lisp
+  (req-package git-gutter-fringe
+    :config
+    (progn
+      (global-diff-hl-mode 0)
+
+      (setq git-gutter-fr:side 'right-fringe)
+
+      (add-hook 'text-mode-hook 'git-gutter-mode)
+      (add-hook 'prog-mode-hook 'git-gutter-mode)
+      ))
+
+#+end_src
+
+* Finish config
+#+begin_src emacs-lisp
+  (req-package-finish)
+#+end_src
 
 * Tasks
 ** TODO Refactor emacs configuration

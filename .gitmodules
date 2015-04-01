@@ -25,3 +25,6 @@
 [submodule "vendor/stripe-buffer"]
 	path = vendor/stripe-buffer
 	url = https://github.com/sabof/stripe-buffer.git
+[submodule "vendor/req-package"]
+	path = vendor/req-package
+	url = https://github.com/edvorg/req-package.git
