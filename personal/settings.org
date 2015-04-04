@@ -45,9 +45,7 @@ Set my name and email
    and required at startup.
    #+begin_src emacs-lisp
      (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
-     (add-to-list 'load-path "~/.emacs.d/vendor/req-package")
      (require 'use-package)
-     (require 'req-package)
 
      (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 
@@ -63,8 +61,10 @@ Set my name and email
         js2-refactor
         key-chord
         aggressive-indent
-        evil-easymotion
+        req-package
         ))
+
+     (require 'req-package)
 
    #+end_src
 
@@ -135,7 +135,17 @@ Set my name and email
      (add-hook 'text-mode-hook 'set-my-margins)
      (add-hook 'prog-mode-hook 'set-my-margins)
 
+
+
      (setq linum-format " %d ")
+
+     (use-package hlinum
+       :ensure
+       :config
+       (progn
+         (hlinum-activate)
+         ))
+
      (add-hook 'prog-mode-hook 'linum-mode)
 
      (powerline-evil-vim-color-theme)
