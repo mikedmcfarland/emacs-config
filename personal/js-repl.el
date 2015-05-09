@@ -1,11 +1,25 @@
 ;; (prelude-require-package 'nodejs-repl)
 
-(setq-default nodejs-repl-command "6to5-node")
+(setq-default nodejs-repl-command "babel-node")
+
+(defun nodejs-repl--sanitize-code (text)
+  "Avoid conflicts with REPL special constructs: _ and .command"
+  (->> text
+       ;; If there is a chained call on a new line, move the dot to the previous line;
+       ;; the repl executes lines eagerly and interprets " .something" as a REPL command
+       (replace-regexp-in-string "\n\\(\\s-*\\)\\.\\(\\w+\\)" ".\n\\1\\2")
+       ;; Replace _ with __ because underscore is a special thing in the REPL
+       (replace-regexp-in-string "\\_<_\\." "__.")
+       ;; Replace var _ = require ... with var __ = ...
+       (replace-regexp-in-string "var\\s-+_\\s-+=" "var __ =")))
+
 
 (defun nodejs-repl-eval-region (start end)
   "Evaluate the region specified by `START' and `END'."
   (let ((proc (get-process nodejs-repl-process-name)))
-    (comint-simple-send proc (buffer-substring-no-properties start end))))
+    (comint-simple-send proc
+                        (nodejs-repl--sanitize-code
+                         (buffer-substring-no-properties start end)))))
 
 (defun nodejs-repl-eval-node (node)
   "Evaluate `NODE', a `js2-mode' node."

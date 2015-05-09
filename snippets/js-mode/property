@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+#key : prop
+#name : property
+# --
+Object.defineProperty(${1:this}, '${2:key}',{
+  get: () => $3,
+  set: value => $4 = value,
+  enumerable :true
+})
