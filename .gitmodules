@@ -21,10 +21,19 @@
 	url = https://github.com/ppareit/graphviz-dot-mode.git
 [submodule "vendor/org-mode"]
 	path = vendor/org-mode
-	url = git://orgmode.org/org-mode.git
+	url = https://github.com/mikedmcfarland/org-mode
 [submodule "vendor/stripe-buffer"]
 	path = vendor/stripe-buffer
 	url = https://github.com/sabof/stripe-buffer.git
 [submodule "vendor/req-package"]
 	path = vendor/req-package
 	url = https://github.com/edvorg/req-package.git
+[submodule "vendor/org-sync"]
+	path = vendor/org-sync
+	url = git://orgmode.org/org-sync.git
+[submodule "vendor/omnisharp-emacs"]
+	path = vendor/omnisharp-emacs
+	url = https://github.com/OmniSharp/omnisharp-emacs.git
+[submodule "vendor/emacs-scrum"]
+	path = vendor/emacs-scrum
+	url = https://github.com/ianxm/emacs-scrum.git

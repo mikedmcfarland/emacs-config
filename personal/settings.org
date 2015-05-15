@@ -293,6 +293,21 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-mode))
 #+end_src
 
+* C#
+#+begin_src emacs-lisp
+  (use-package csharp-mode
+    :ensure
+    :config
+    (progn
+      ))
+
+  (use-package omnisharp
+    :load-path "~/.emacs.d/vendor/omnisharp-emacs"
+    :config
+    (progn
+      (add-hook 'csharp-mode-hook 'omnisharp-mode)
+      ))
+#+end_src
 
 * Jade
   #+begin_src emacs-lisp
@@ -468,6 +483,8 @@ language definitions for org babel
      (scala . t)
      (sh . t)
      (dot . t)
+     (python . t)
+     (gnuplot . t)
      ))
 #+end_src
 
@@ -563,7 +580,7 @@ Configure shortcuts and settings for org agenda
       ))
    #+end_src
 
-** Org capture
+** org-capture
 Set up capture templates and shortcuts.
    #+begin_src emacs-lisp
      (use-package org-capture
@@ -625,7 +642,7 @@ They add tasks to the appropriate org file (and section) based on the current pr
            (bear-org-jump-to-tasks))))
    #+end_src
 
-** Org-clock (time-tracking)
+** org-clock (time-tracking)
 set up org clocking shortcuts and settings
    #+begin_src emacs-lisp
      (setq org-clock-persist 'history)
@@ -653,6 +670,38 @@ set up org clocking shortcuts and settings
          ))
 
    #+end_src
+
+** org-sync
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "~/.emacs.d/vendor/org-sync")
+  (require 'os)
+  (require 'os-bb)
+  (require 'os-github)
+  (require 'os-rmine)
+
+#+end_src
+
+** org-scrum
+#+begin_src emacs-lisp
+  (use-package scrum
+    :load-path "~/.emacs.d/vendor/emacs-scrum"
+    :config
+    (progn
+      ))
+
+  (use-package gnuplot
+    :ensure
+    :config
+    (progn
+      ))
+
+  (use-package gnuplot-mode
+    :ensure
+    :config
+    (progn
+      ))
+
+#+end_src
 
 
 * Web Mode
@@ -1017,7 +1066,7 @@ Useful to drag lines up and down.
 - [ ] being able to move rectangular regions would be nice
 
 * Erc
-I use erc for chatting with bitlbee. Still getting the hang of it.
+I use erc for chatting with bitlbee.
 #+begin_src emacs-lisp
   (setq erc-auto-query 'frame
         erc-query-display 'frame
@@ -1215,7 +1264,8 @@ has replace ace-jump-line for me since I don't have to wait for feedback.
 - [ ] use, use-package, for more cohesion.
 - [ ] transition away from prelude
 
-** TODO [#C] Bring in node REPL mode from chromebook
+** DONE [#C] Bring in node REPL mode from chromebook
+CLOSED: [2015-05-09 Sat 16:07]
 - [ ] configure for es6 with 6to5
 - [ ] Clean up implementation
 - [ ] pull from chromebook into master
