@@ -306,6 +306,7 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
     :config
     (progn
       (add-hook 'csharp-mode-hook 'omnisharp-mode)
+      (setq omnisharp-debug t)
       ))
 #+end_src
 
@@ -660,13 +661,13 @@ set up org clocking shortcuts and settings
 
          (defun my-org-mode-ask-effort ()
            "Ask for an effort estimate when clocking in."
-           (unless (org-entry-get (point) "Effort")
+           (unless (org-entry-get (point) org-effort-property)
              (let ((effort
                     (completing-read
-                     "Effort: "
-                     (org-entry-get-multivalued-property (point) "Effort"))))
+                     (format "%s: " org-effort-property)
+                     (org-entry-get-multivalued-property (point) org-effort-property))))
                (unless (equal effort "")
-                 (org-set-property "Effort" effort)))))
+                 (org-set-property org-effort-property effort)))))
          ))
 
    #+end_src
@@ -675,19 +676,14 @@ set up org clocking shortcuts and settings
 #+begin_src emacs-lisp
   (add-to-list 'load-path "~/.emacs.d/vendor/org-sync")
   (require 'os)
-  (require 'os-bb)
-  (require 'os-github)
-  (require 'os-rmine)
+ ;; (require 'os-bb)
+ ;; (require 'os-github)
+ ;; (require 'os-rmine)
 
 #+end_src
 
 ** org-scrum
 #+begin_src emacs-lisp
-  (use-package scrum
-    :load-path "~/.emacs.d/vendor/emacs-scrum"
-    :config
-    (progn
-      ))
 
   (use-package gnuplot
     :ensure
@@ -699,6 +695,14 @@ set up org clocking shortcuts and settings
     :ensure
     :config
     (progn
+      ))
+
+  (use-package scrum
+    :load-path "~/.emacs.d/vendor/emacs-scrum"
+    :config
+    (progn
+      (setq org-effort-property "ESTIMATED")
+
       ))
 
 #+end_src
