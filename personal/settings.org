@@ -309,6 +309,16 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
       ))
 #+end_src
 
+* Scala
+#+begin_src emacs-lisp
+  (use-package ensime
+    :ensure
+    :commands ensime-scala-mode-hook
+    ;; :load-path "~/.emacs.d/vendor/ensime"
+    :init
+    (add-hook 'scala-mode-hook 'ensime-scala-mode-hook))
+#+end_src
+
 * Jade
   #+begin_src emacs-lisp
     (use-package jade-mode
