@@ -37,3 +37,6 @@
 [submodule "vendor/emacs-scrum"]
 	path = vendor/emacs-scrum
 	url = https://github.com/ianxm/emacs-scrum.git
+[submodule "vendor/monokai-emacs"]
+	path = vendor/monokai-emacs
+	url = https://github.com/oneKelvinSmith/monokai-emacs.git

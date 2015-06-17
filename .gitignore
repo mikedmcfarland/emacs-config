@@ -24,3 +24,7 @@ tramp
 /personal/settings.el
 org-clock-save.el
 .mc-lists.el
+
+ensime
+.org-id-locations
+personal/secret.el

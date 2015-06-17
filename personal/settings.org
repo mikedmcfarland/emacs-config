@@ -27,6 +27,10 @@ tags : [linux]
   window management needs. Its nicer when all my programs operate
   tabs/windowing consistently.
 
+  My config will be periodically updated on my blog, and since I often piece
+  things together quickly and refine it later, there's likely to be mess
+  from time to time
+
 * Emacs initialization
 
 ** Personal Information
@@ -51,7 +55,6 @@ Set my name and email
 
      (prelude-require-packages
       '(s
-        monokai-theme
         restclient
         powerline-evil
         yasnippet
@@ -87,6 +90,20 @@ Set my name and email
 
     #+end_src
 
+
+** Auto Save
+Auto save is fine, just don't do it in my working directories
+#+begin_src emacs-lisp
+  (defvar user-temporary-file-directory
+    (concat temporary-file-directory user-login-name "/"))
+
+  (setq auto-save-list-file-prefix
+        (concat user-temporary-file-directory ".auto-saves-"))
+  (setq auto-save-file-name-transforms
+        `((".*" ,user-temporary-file-directory t)))
+#+end_src
+
+
 ** Save Place
     Save cursor position when reopening a file
     #+begin_src emacs-lisp
@@ -98,6 +115,7 @@ Set my name and email
 ** Aesthetics
    Load the monokai theme (Sublime Text's default colors)
    #+begin_src emacs-lisp
+     (add-to-list 'custom-theme-load-path "~/.emacs.d/vendor/monokai-emacs")
      (load-theme 'monokai t)
    #+end_src
 
@@ -111,6 +129,12 @@ Set my name and email
    were requiring me to re-run expressions after connecting another client
    #+begin_src emacs-lisp
      (add-to-list 'default-frame-alist '(font .   "Source Code Pro 12" ))
+   #+end_src
+
+   Configure whitespace mode
+   #+begin_src emacs-lisp
+     (setq whitespace-style
+           '(face tabs empty trailing))
    #+end_src
 
 
@@ -149,6 +173,9 @@ Set my name and email
      (add-hook 'prog-mode-hook 'linum-mode)
 
      (powerline-evil-vim-color-theme)
+
+     (setq-default tab-width 2)
+
    #+end_src
 
 *** TODO [#C] make margins dynamic
@@ -293,6 +320,13 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-mode))
 #+end_src
 
+* Python
+#+begin_src emacs-lisp
+  (setq python-guess-indent nil)
+  (setq python-indent 2)
+
+#+end_src
+
 * C#
 #+begin_src emacs-lisp
   (use-package csharp-mode
@@ -317,8 +351,22 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
     :commands ensime-scala-mode-hook
     ;; :load-path "~/.emacs.d/vendor/ensime"
     :init
-    (add-hook 'scala-mode-hook 'ensime-scala-mode-hook))
+    (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
+    :config
+    (progn
+      (evil-define-key `normal ensime-mode-map (kbd "SPC ee") 'ensime-print-errors-at-point)
+      (evil-define-key `normal ensime-mode-map (kbd "SPC et") 'ensime-print-type-at-point)
+      (evil-define-key `normal ensime-mode-map (kbd "SPC ei") 'ensime-import-type-at-point)
+      (evil-define-key `normal ensime-mode-map (kbd "SPC ed") 'ensime-edit-definition)
+
+      (evil-define-key `normal ensime-mode-map (kbd "SPC er") 'ensime-refactor-rename)
+      (evil-define-key `normal ensime-mode-map (kbd "SPC eo") 'ensime-refactor-organize-imports)
+
+      (evil-define-key `normal ensime-mode-map (kbd "SPC en") 'ensime-reload)))
+
 #+end_src
+
+
 
 * Jade
   #+begin_src emacs-lisp
@@ -476,6 +524,15 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 
 #+end_src
 
+** Insert todays date
+#+begin_src emacs-lisp
+  (defun put-todays-date ()
+    (interactive)
+    (insert (shell-command-to-string "todays-date")))
+
+#+end_src
+
+
 
 * Org-mode
 ** Misc
@@ -483,6 +540,44 @@ Automatically put us into org-indent-mode when editing org files
 #+begin_src emacs-lisp
   (add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
+
+some custom shortcuts
+#+begin_src emacs-lisp
+  (evil-define-key 'normal org-mode-map " ol" 'org-toggle-link-display)
+#+end_src
+#+begin_src emacs-lisp
+  ;; (setq org-src-fontify-natively t)
+  (setq org-src-fontify-natively nil)
+
+#+end_src
+
+** magit-ediff
+When using magit-ediff org files sometimes have collapsed headings. This makes it fairly
+hard to resolve any conflicts. This makes everything visible when using ediff.
+#+begin_src emacs-lisp
+  (add-hook 'ediff-prepare-buffer-hook 'f-ediff-prepare-buffer-hook-setup)
+  (defun f-ediff-prepare-buffer-hook-setup ()
+    ;; specific modes
+    (cond ((eq major-mode 'org-mode)
+           (f-org-vis-mod-maximum))
+          ;; room for more modes
+          )
+    ;; all modes
+    (setq truncate-lines nil))
+  (defun f-org-vis-mod-maximum ()
+    "Visibility: Show the most possible."
+    (cond
+     ((eq major-mode 'org-mode)
+      (visible-mode 1)  ; default 0
+      (setq truncate-lines nil)  ; no `org-startup-truncated' in hook
+      (setq org-hide-leading-stars t))  ; default nil
+     (t
+      (message "ERR: not in Org mode")
+      (ding))))
+
+#+end_src
+
+
 
 ** org-babel
 language definitions for org babel
