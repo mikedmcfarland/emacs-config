@@ -40,3 +40,6 @@
 [submodule "vendor/monokai-emacs"]
 	path = vendor/monokai-emacs
 	url = https://github.com/oneKelvinSmith/monokai-emacs.git
+[submodule "vendor/avy"]
+	path = vendor/avy
+	url = https://github.com/abo-abo/avy.git

@@ -176,6 +176,20 @@ Auto save is fine, just don't do it in my working directories
 
      (setq-default tab-width 2)
 
+     (add-hook 'prog-mode-hook
+               (lambda () (setq prettify-symbols-alist
+                           '(
+                             ("=>" . ?⇒)
+                             ("<-" . ?←)
+                             ("->" . ?→)
+                             ("<<<" . ?⋘)
+                             (">>>" . ?⋙)
+                             ("lambda" . ?λ)
+                             ("function" . ?λ)
+                             ))))
+
+
+     (global-prettify-symbols-mode t)
    #+end_src
 
 *** TODO [#C] make margins dynamic
@@ -361,7 +375,6 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 
       (evil-define-key `normal ensime-mode-map (kbd "SPC er") 'ensime-refactor-rename)
       (evil-define-key `normal ensime-mode-map (kbd "SPC eo") 'ensime-refactor-organize-imports)
-
       (evil-define-key `normal ensime-mode-map (kbd "SPC en") 'ensime-reload)))
 
 #+end_src
@@ -1096,15 +1109,11 @@ It's cool but less functional then I expected (for my workflow)
 
   (defun point-greater-then (v)
     (lexical-let ((v v))
-      (lambda ()
-        (> (point) v)))
-    )
+      (lambda () (> (point) v))))
 
   (defun point-less-then (v)
     (lexical-let ((v v))
-      (lambda ()
-        (< (point) v)))
-    )
+      (lambda () (< (point) v))))
 
   (defun evil-ace-jump-word-mode-backward ()
     (interactive)
@@ -1120,6 +1129,29 @@ It's cool but less functional then I expected (for my workflow)
   (map-n-v-evil-states " k" 'evil-ace-jump-word-mode-backward)
 #+end_src
 
+* Avy Jump
+#+begin_src emacs-lisp
+  (use-package avy
+    :load-path "~/.emacs.d/vendor/avy"
+    :commands avy-goto-char
+    :config
+    (progn
+      (map-n-v-evil-states (kbd "SPC g") 'avy-goto-char)
+
+      ))
+
+  ;; (defun bear-avy-goto-char (char)
+  ;;   "Jump to the currently visible CHAR.
+  ;; The window scope is determined by `avy-all-windows' (ARG negates it)."
+  ;;   (interactive (list (read-char "char: ")
+  ;;                      current-prefix-arg))
+  ;;   (cl-flet
+  ;;       ((pred (mf (x)(> x 0)))
+
+  ;;        (avy-goto-char char))
+  ;;     ))
+#+end_src
+
 * DONE helm swoop
 helm swoop config and shortcuts. I use this mainly for current buffer searches.
 CLOSED: [2015-02-11 Wed 14:05]
@@ -1127,15 +1159,17 @@ CLOSED: [2015-02-11 Wed 14:05]
   (use-package helm-swoop
     :load-path "~/.emacs.d/vendor/helm-swoop"
     :config
-    (setq
-     helm-swoop-pre-input-function (lambda () "empty unless in visual mode"
-                                     (if (evil-visual-state-p)
-                                         (thing-at-point 'symbol)
-                                       ""))
-     helm-swoop-speed-or-color t)
-    (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
-    (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
-    (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
+    (progn
+      (setq
+       helm-swoop-pre-input-function (lambda () "empty unless in visual mode"
+                                       (if (evil-visual-state-p)
+                                           (thing-at-point 'symbol)
+                                         ""))
+       helm-swoop-speed-or-color t)
+      (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
+      (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+      (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop))
+    )
 #+end_src
 
 * wgrep-ag
@@ -1222,16 +1256,20 @@ Notify on message
 
 
 * Aggressive indent
-use package isn't working, installed with prelude require instead
-#+begin_src emacs-lisp
-  (global-aggressive-indent-mode)
 
-  ;; (use-package aggressive-indent
-  ;;   :ensure names
-  ;;   :config
-  ;;   (progn
-  ;;     (global-aggressive-indent-mode t)
-  ;;     ))
+Has dependencies so I used prelude-require for now, should refactor to use use package instead.
+
+Enable it general, with the exception of a few modes where it gets in the way.
+#+begin_src emacs-lisp
+  (defvar aggressive-indent-mode-exceptions
+    '(scala-mode,jade-mode,python-mode))
+
+  (defun maybe-aggressive-indent-mode ()
+    (unless (member major-mode aggressive-indent-mode-exceptions)
+      (aggressive-indent-mode t)))
+
+  (add-hook 'prog-mode-hook 'maybe-aggressive-indent-mode)
+  (add-hook 'text-mode-hook 'maybe-aggressive-indent-mode)
 #+end_src
 
 * Relative line numbers
