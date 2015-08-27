@@ -11,21 +11,21 @@ tags : [linux]
 
 * About
 ** This File
-  This is an emacs org-mode file which generates my personal emacs
-  configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]]. I
-  share my config across multiple machines and use git to version it.
-  [[http://github.com/mikedmcfarland/emacs-config][Here is my configuration on github]].
+This is an emacs org-mode file which generates my personal emacs
+configuration. These settings are used along side [[http://github.com/bbatsov/prelude][Emacs Prelude]]. I
+share my config across multiple machines and use git to version it.
+[[http://github.com/mikedmcfarland/emacs-config][Here is my configuration on github]].
 
 ** This  Emacs Config
-  My workflow involves running mainly one window in a frame. And
-  running many frames at once (all in daemon mode). Many settings are
-  a consequence of this.
+My workflow involves running mainly one window in a frame. And
+running many frames at once (all in daemon mode). Many settings are
+a consequence of this.
 
-  *Why?*
+*Why?*
 
-  I run emacs in a [[http://i3wm.org][tiling window manager]], it takes care of tabing and
-  window management needs. Its nicer when all my programs operate
-  tabs/windowing consistently.
+I run emacs in a [[http://i3wm.org][tiling window manager]], it takes care of tabing and
+window management needs. Its nicer when all my programs operate
+tabs/windowing consistently.
 
   My config will be periodically updated on my blog, and since I often piece
   things together quickly and refine it later, there's likely to be mess
@@ -74,7 +74,7 @@ Set my name and email
 ** Backups
     store backups in one folder instead next to the file
     #+begin_src emacs-lisp
-      (setq backup-directory-alist `(("." . "~/.emacs.d/.backups")))
+      (setq backup-directory-alist `((".*" . "~/.emacs.d/.backups")))
 
       (setq make-backup-files t               ; backup of a file the first time it is saved.
             backup-by-copying t               ; don't clobber symlinks
@@ -94,13 +94,11 @@ Set my name and email
 ** Auto Save
 Auto save is fine, just don't do it in my working directories
 #+begin_src emacs-lisp
-  (defvar user-temporary-file-directory
-    (concat temporary-file-directory user-login-name "/"))
+  (defvar my-auto-save-folder "~/.emacs.d/auto-save"); folder for auto-saves
+  (setq auto-save-list-file-prefix "~/.emacs.d/auto-save/.saves-"); set prefix for auto-saves
+  (setq auto-save-file-name-transforms `((".*" ,my-auto-save-folder t))); location for all auto-save files
+  (setq tramp-auto-save-directory my-auto-save-folder); auto-save tramp files in local directory
 
-  (setq auto-save-list-file-prefix
-        (concat user-temporary-file-directory ".auto-saves-"))
-  (setq auto-save-file-name-transforms
-        `((".*" ,user-temporary-file-directory t)))
 #+end_src
 
 
@@ -111,6 +109,11 @@ Auto save is fine, just don't do it in my working directories
       (setq-default save-place t)
       (require 'saveplace)
     #+end_src
+
+** TODO Clipboard
+#+begin_src emacs-lisp
+  (setq mouse-drag-copy-region nil)
+#+end_src
 
 ** Aesthetics
    Load the monokai theme (Sublime Text's default colors)
@@ -351,6 +354,7 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 
   (use-package omnisharp
     :load-path "~/.emacs.d/vendor/omnisharp-emacs"
+    :disabled t
     :config
     (progn
       (add-hook 'csharp-mode-hook 'omnisharp-mode)
@@ -824,6 +828,39 @@ set up org clocking shortcuts and settings
       ))
 
 #+end_src
+
+** org json export
+#+begin_src emacs-lisp
+  ;; Provides function to export current org buffer as JSON structure
+  ;; to $file.org.json. Adapted from an org-mode mailing post by
+  ;; Brett Viren: https://lists.gnu.org/archive/html/emacs-orgmode/2014-01/msg00338.html
+  (require 'json)
+  (defun org-export-json ()
+    (interactive)
+    (let* ((tree (org-element-parse-buffer 'object nil)))
+      (org-element-map tree (append org-element-all-elements
+                                    org-element-all-objects '(plain-text))
+        (lambda (x)
+          (if (org-element-property :parent x)
+              (org-element-put-property x :parent "none"))
+          (if (org-element-property :structure x)
+              (org-element-put-property x :structure "none"))
+          ))
+      (write-region
+       (json-encode tree)
+       nil (concat (buffer-file-name) ".json"))))
+
+  (defun cli-org-export-json ()
+    (let ((org-file-path (car command-line-args-left))
+          (other-load-files (cdr command-line-args-left)))
+      (mapc 'load-file other-load-files)
+      (find-file org-file-path)
+      (org-mode)
+      (message "Exporting to JSON: %s" (car command-line-args-left))
+      (org-export-json)))
+
+#+end_src
+
 
 
 * Web Mode
