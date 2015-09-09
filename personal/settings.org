@@ -27,27 +27,27 @@ I run emacs in a [[http://i3wm.org][tiling window manager]], it takes care of ta
 window management needs. Its nicer when all my programs operate
 tabs/windowing consistently.
 
-  My config will be periodically updated on my blog, and since I often piece
-  things together quickly and refine it later, there's likely to be mess
-  from time to time
+My config will be periodically updated on my blog, and since I often piece
+things together quickly and refine it later, there's likely to be mess
+from time to time
 
 * Emacs initialization
 
 ** Personal Information
 Set my name and email
-  #+begin_src emacs-lisp
+#+begin_src emacs-lisp
     (setq user-full-name "Mike McFarland"
           user-mail-address "mikedmcfarland@gmail.com")
-  #+end_src
+#+end_src
 
 ** Prelude Modules
-   Prelude includes many packages you can toggle. Here's [[https://github.com/mikedmcfarland/emacs-config/blob/master/prelude-modules.el][the list]] I enabled.
+Prelude includes many packages you can toggle. Here's [[https://github.com/mikedmcfarland/emacs-config/blob/master/prelude-modules.el][the list]] I enabled.
 
 
 ** Packages
-   My required packages, prelude will make sure these are downloaded
-   and required at startup.
-   #+begin_src emacs-lisp
+My required packages, prelude will make sure these are downloaded
+and required at startup.
+#+begin_src emacs-lisp
      (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
      (require 'use-package)
 
@@ -69,11 +69,11 @@ Set my name and email
 
      (require 'req-package)
 
-   #+end_src
+#+end_src
 
 ** Backups
-    store backups in one folder instead next to the file
-    #+begin_src emacs-lisp
+store backups in one folder instead next to the file
+#+begin_src emacs-lisp
       (setq backup-directory-alist `((".*" . "~/.emacs.d/.backups")))
 
       (setq make-backup-files t               ; backup of a file the first time it is saved.
@@ -217,7 +217,16 @@ I map evil shortcuts allot, these are those mappings shorter.
      (defun map-n-i-evil-states (keys action)
        (define-key evil-normal-state-map keys action)
        (define-key evil-insert-state-map keys action))
-   #+end_src
+       #+end_src
+
+** Buffer display
+I like having certain buffers open in a new frame, like help
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               '(".*HELP". ((display-buffer-pop-up-frame) . ())))
+#+end_src
+
+
 * Javascript
 ** js2 refactor
   set js refactors prefix
@@ -335,6 +344,71 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 ** misc
 #+begin_src emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-mode))
+#+end_src
+
+** org babel node tweaks
+#+begin_src emacs-lisp
+  ;; (require 'ob-js)
+  ;; (defun org-babel-execute:js (body params)
+  ;;   "Execute a block of Javascript code with org-babel.
+  ;; This function is called by `org-babel-execute-src-block'"
+  ;;   (let* ((org-babel-js-cmd (or (cdr (assoc :cmd params)) org-babel-js-cmd))
+  ;;          (result-type (cdr (assoc :result-type params)))
+  ;;          (full-body (org-babel-expand-body:generic
+  ;;                      body params (org-babel-variable-assignments:js params)))
+  ;;          (result (org-babel-js-execute-node full-body)))
+  ;;     (org-babel-result-cond (cdr (assoc :result-params params))
+  ;;       result (org-babel-js-read result))))
+
+  ;; ;; (defun org-babel-js-execute-node (script)
+  ;; ;;   (shell-command-to-string (org-babel-js-cmd-format script)))
+
+  ;; (defun org-babel-js-cmd-format(script)
+  ;;   (format "%s -e \"%s\"" org-babel-js-cmd (shell-quote-argument script)))
+
+
+  ;; (defvar org-babel-js-transpile-cmd "babel")
+
+  ;; (defun org-babel-js-execute-node(full-body)
+  ;;   (let ((script-file (org-babel-temp-file "js-script-")))
+  ;;     (with-temp-file script-file
+  ;;       (insert (if (string= result-type "value")
+  ;;                   (format org-babel-js-function-wrapper full-body)
+  ;;                 full-body)))
+  ;;     (org-babel-eval
+  ;;      (format "%s %s | %s"
+  ;;              "babel"
+  ;;              (org-babel-process-file-name script-file)
+  ;;              "node")
+  ;;      ""))
+  ;;   )
+
+  ;; (defun js-transpile-buffer
+  ;;     (shell-command-on-region (point-min) (point-max) "babel" t t))
+
+  ;; ;; (if (not (string= (cdr (assoc :session params)) "none"))
+  ;; ;;     ;; session evaluation
+  ;; ;;     (let ((session (org-babel-prep-session:js
+  ;; ;;                     (cdr (assoc :session params)) params)))
+  ;; ;;       (nth 1
+  ;; ;;            (org-babel-comint-with-output
+  ;; ;;                (session (format "%S" org-babel-js-eoe) t body)
+  ;; ;;              (mapc
+  ;; ;;               (lambda (line)
+  ;; ;;                 (insert (org-babel-chomp line))
+  ;; ;;                 (comint-send-input nil t))
+  ;; ;;               (list body (format "%S" org-babel-js-eoe))))))
+  ;; ;;   ;; external evaluation
+  ;; ;;   (let ((script-file (org-babel-temp-file "js-script-")))
+  ;; ;;     (with-temp-file script-file
+  ;; ;;       (insert
+  ;; ;;        ;; return the value or the output
+  ;; ;;        (if (string= result-type "value")
+  ;; ;;            (format org-babel-js-function-wrapper full-body)
+  ;; ;;          full-body)))
+  ;; ;;     (org-babel-eval
+  ;; ;;      (format "%s %s" org-babel-js-cmd
+  ;; ;;              (org-babel-process-file-name script-file)) "")))
 #+end_src
 
 * Python
@@ -611,9 +685,8 @@ language definitions for org babel
      ))
 #+end_src
 
-open source code blocks in new frames.
 #+begin_src emacs-lisp
-  (set 'org-src-window-setup 'current-window)
+(set 'org-src-window-setup 'current-window)
 #+end_src
 
 org mode maps the language mode by name, remap to proper modes
@@ -936,7 +1009,7 @@ A bunch of keybindings that really should be put into appropriate sections.
     (defun org-edit-src-save-and-exit()
       (interactive)
       (org-edit-src-save)
-      (org-edit-src-exit 'exit))
+      (org-edit-src-exit))
 
     ;; (map-n-v-evil-states  (kbd "SPC i") 'helm-swoop)
     (global-set-key (kbd "C-S-i") 'helm-projectile-ack)
