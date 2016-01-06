@@ -48,26 +48,29 @@ Prelude includes many packages you can toggle. Here's [[https://github.com/miked
 My required packages, prelude will make sure these are downloaded
 and required at startup.
 #+begin_src emacs-lisp
-     (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
-     (require 'use-package)
+  (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+  (require 'use-package)
 
-     (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+  (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 
-     (prelude-require-packages
-      '(s
-        restclient
-        powerline-evil
-        yasnippet
-        multiple-cursors
-        expand-region
-        evil-nerd-commenter
-        js2-refactor
-        key-chord
-        aggressive-indent
-        req-package
-        ))
+  (prelude-require-packages
+   '(s
+     restclient
+     powerline-evil
+     yasnippet
+     multiple-cursors
+     expand-region
+     evil-nerd-commenter
+     js2-refactor
+     key-chord
+     aggressive-indent
+     req-package
+     malabar-mode
+     flymake-jslint
+     edbi
+     ))
 
-     (require 'req-package)
+  (require 'req-package)
 
 #+end_src
 
@@ -188,7 +191,7 @@ Auto save is fine, just don't do it in my working directories
                              ("<<<" . ?⋘)
                              (">>>" . ?⋙)
                              ("lambda" . ?λ)
-                             ("function" . ?λ)
+                             ;; ("function" . ?λ)
                              ))))
 
 
@@ -344,8 +347,10 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
 ** misc
 #+begin_src emacs-lisp
   (add-to-list 'auto-mode-alist '("\\.jsx\\'" . js2-mode))
-#+end_src
+  (add-hook 'js-mode-hook 'flymake-jslint-load)
 
+
+#+end_src
 ** org babel node tweaks
 #+begin_src emacs-lisp
   ;; (require 'ob-js)
@@ -499,6 +504,8 @@ manually all the time. This seeks out '=' or ':' in lines, and aligns them.
    don't want any delay in suggestions.
    #+begin_src emacs-lisp
      (setq company-idle-delay 0)
+     (setq company-dabbrev-ignore-case `keep-prefix)
+     (setq company-dabbrev-downcase nil)
    #+end_src
 
 ** Tab
@@ -870,7 +877,7 @@ set up org clocking shortcuts and settings
 ** org-sync
 #+begin_src emacs-lisp
   (add-to-list 'load-path "~/.emacs.d/vendor/org-sync")
-  (require 'os)
+ ;; (require 'os)
  ;; (require 'os-bb)
  ;; (require 'os-github)
  ;; (require 'os-rmine)
@@ -943,6 +950,7 @@ set up org clocking shortcuts and settings
     :config
     (progn
       (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+      (add-to-list 'auto-mode-alist '("\\.hbs\\'" . web-mode))
       ;; (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
       ))
 
@@ -970,7 +978,6 @@ A bunch of keybindings that really should be put into appropriate sections.
     (global-set-key (kbd "RET") 'newline-and-indent)
 
     ;;Remap alt p to switching a project with projectile
-    (global-set-key (kbd "M-p") 'projectile-switch-project)
 
     (global-set-key (kbd "C-h") 'previous-buffer)
     (global-set-key (kbd "C-l") 'next-buffer)
@@ -992,7 +999,10 @@ A bunch of keybindings that really should be put into appropriate sections.
     (map-n-v-evil-states (kbd "SPC r") 'js2r-rename-var)
     (map-n-v-evil-states (kbd "SPC l") 'js2r-log-this)
     (map-n-v-evil-states (kbd "SPC c") 'evilnc-comment-or-uncomment-lines)
-    (map-n-v-evil-states (kbd "SPC p") 'projectile-find-file)
+    (map-n-v-evil-states (kbd "SPC f") 'projectile-find-file)
+    (map-n-v-evil-states (kbd "SPC p") 'projectile-switch-project)
+    (map-n-v-evil-states (kbd "SPC b") 'helm-mini)
+    (map-n-v-evil-states (kbd "SPC x") 'helm-M-x)
 
     (global-set-key (kbd "C-s") 'save-buffer)
     (map-n-v-evil-states (kbd "SPC s") 'save-buffer)
@@ -1378,8 +1388,9 @@ Enable it general, with the exception of a few modes where it gets in the way.
     (unless (member major-mode aggressive-indent-mode-exceptions)
       (aggressive-indent-mode t)))
 
-  (add-hook 'prog-mode-hook 'maybe-aggressive-indent-mode)
-  (add-hook 'text-mode-hook 'maybe-aggressive-indent-mode)
+  ;; (add-hook 'prog-mode-hook 'maybe-aggressive-indent-mode)
+  ;; (add-hook 'text-mode-hook 'maybe-aggressive-indent-mode)
+
 #+end_src
 
 * Relative line numbers
